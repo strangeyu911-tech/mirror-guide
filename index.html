@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>以日为鉴 · 新版生存指南（作者判断版）</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='4' fill='%2324565a'/%3E%3Cpath d='M7 17V9m5 8V5m5 12v-6' stroke='%23f5f1e8' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#f5f1e8; --paper2:#ece6d8; --card:#fbf8f1; --ink:#2a2723; --ink2:#5c564c;
+  --line:#ddd5c4; --teal:#24565a; --teal2:#4a8a86; --fact:#2f6f5e; --mid:#8a6d2f; --low:#9a4a3a;
+  --shadow:0 1px 2px rgba(40,35,25,.06),0 8px 24px rgba(40,35,25,.06);
+}
+html[data-theme="dark"]{
+  --paper:#16181a; --paper2:#1e2124; --card:#1d2023; --ink:#e8e4da; --ink2:#a9a294;
+  --line:#2e3338; --teal:#6fb0ad; --teal2:#4a8a86; --fact:#6fae97; --mid:#c9a85e; --low:#d08a7a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;font-size:16.5px;line-height:1.9;-webkit-font-smoothing:antialiased}
+a{color:var(--teal);text-decoration:none}
+a:hover{text-decoration:underline}
+p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
+.wrap{max-width:880px;margin:0 auto;padding:0 22px}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--teal);z-index:999;transition:width .1s}
+.topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:900}
+.topbar .in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 18px}
+.topbar .brand{font-weight:700;letter-spacing:.5px;font-size:15px;white-space:nowrap}
+.topbar .sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 12px;border-radius:8px;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn:hover{border-color:var(--teal);color:var(--teal)}
+.searchbox{display:flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.searchbox input{border:0;background:transparent;outline:none;color:var(--ink);font-size:13.5px;width:120px;font-family:inherit}
+#hitcount{font-size:12px;color:var(--ink2);white-space:nowrap}
+#toc{position:fixed;top:46px;left:0;width:300px;max-width:82vw;height:calc(100vh - 46px);background:var(--card);border-right:1px solid var(--line);overflow:auto;padding:16px 14px;transform:translateX(-105%);transition:transform .25s;z-index:950}
+#toc.open{transform:translateX(0)}
+#toc h4{margin:6px 8px 10px;font-size:13px;color:var(--ink2);letter-spacing:1px}
+#toc a{display:block;padding:6px 10px;border-radius:6px;font-size:14px;color:var(--ink);line-height:1.5}
+#toc a:hover{background:var(--paper2);text-decoration:none}
+#toc a.lvl2{padding-left:24px;font-size:13.5px;color:var(--ink2)}
+#toc-mask{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:940}
+#toc-mask.show{opacity:1;pointer-events:auto}
+.hero{padding:64px 0 36px;border-bottom:1px solid var(--line)}
+.hero .kicker{font-size:13px;letter-spacing:2px;color:var(--teal);margin-bottom:14px}
+.hero h1{font-size:34px;line-height:1.3;margin:0 0 14px;font-weight:800}
+.hero .sub{color:var(--ink2);font-size:15.5px;max-width:640px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.tag-fact{background:rgba(47,111,94,.14);color:var(--fact)}
+.tag-mid{background:rgba(138,109,47,.16);color:var(--mid)}
+.tag-low{background:rgba(154,74,58,.14);color:var(--low)}
+section{padding:42px 0;border-bottom:1px solid var(--line)}
+.sec-no{display:inline-block;font-size:12px;letter-spacing:2px;color:var(--teal);border:1px solid var(--teal);border-radius:20px;padding:2px 10px;margin-bottom:10px}
+h2{font-size:26px;margin:6px 0 18px;line-height:1.35}
+h3{font-size:19px;margin:30px 0 10px;color:var(--teal)}
+h4{font-size:16px;margin:18px 0 8px}
+p{margin:10px 0}
+.lead{font-size:16.5px;color:var(--ink2)}
+.verdict{border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;background:var(--card)}
+.verdict b{color:var(--teal)}
+.tbl-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:13.5px;background:var(--card)}
+th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--paper2);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--card)}
+.card h5{margin:0 0 8px;font-size:15px}
+.card label{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.6;cursor:pointer;padding:4px 0}
+.card input{margin-top:5px}
+.card .note{font-size:12.5px;color:var(--ink2);margin-top:8px;line-height:1.5}
+.scn{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;background:var(--card)}
+.scn h4{margin-top:0}
+.scn.A{border-top:3px solid var(--fact)}
+.scn.B{border-top:3px solid var(--low)}
+.persona{display:grid;grid-template-columns:120px 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:10px 0;font-size:13.5px}
+.persona .row{display:contents}
+.persona > div{padding:9px 11px;border-bottom:1px solid var(--line)}
+.persona .hd{background:var(--paper2);font-weight:700}
+.persona .pn{font-weight:700;background:var(--paper2)}
+.hook{margin:30px 0 6px;padding:16px 18px;background:var(--teal);color:#f5f1e8;border-radius:12px;font-size:15.5px;line-height:1.6}
+.hook a{color:#fff;text-decoration:underline}
+.chart{width:100%;height:320px;margin:10px 0}
+.hint{font-size:12.5px;color:var(--ink2)}
+.bottomnav{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;padding:10px 18px;z-index:800}
+.bottomnav .btn{min-width:120px;text-align:center}
+.bottomnav .disabled{opacity:.4;pointer-events:none}
+mark{background:#f4d77a;color:inherit;border-radius:2px;padding:0 1px}
+sup.ref{font-size:.72em;color:var(--teal);font-weight:600;white-space:nowrap}
+sup.ref a{color:var(--teal);text-decoration:none}
+sup.ref a:hover{text-decoration:underline}
+#refs ol{padding-left:1.4em;font-size:13.5px;line-height:1.8}
+#refs li{margin:8px 0;color:var(--ink2)}
+#refs li b{color:var(--ink)}
+@media(max-width:680px){
+  .hero h1{font-size:26px}
+  .persona{grid-template-columns:1fr;font-size:13px}
+  .persona .hd{display:none}
+  .searchbox input{width:80px}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="topbar">
+  <div class="in">
+    <button class="btn" id="tocbtn" aria-label="目录">目录</button>
+    <span class="brand">以日为鉴 · 新版生存指南</span>
+    <span class="sp"></span>
+    <div class="searchbox">
+      <input id="q" type="text" placeholder="搜索关键词">
+      <span id="hitcount"></span>
+    </div>
+    <button class="btn" id="themebtn">日夜</button>
+  </div>
+</div>
+
+<nav id="toc" aria-label="目录">
+  <h4>章节</h4>
+  <a href="#intro">引子 · 我们的立场与读法</a>
+  <a href="#part1" class="lvl2">第一篇 · 我们对时代的判断</a>
+  <a href="#s11" class="lvl2">1.1 中日四点相同</a>
+  <a href="#s12" class="lvl2">1.2 中日六点不同</a>
+  <a href="#s13" class="lvl2">1.3 宏观数据对照表</a>
+  <a href="#s14" class="lvl2">1.4 高风险点与不重蹈的理由</a>
+  <a href="#s15" class="lvl2">1.5 三个长周期叠加的位置</a>
+  <a href="#part2" class="lvl2">第二篇 · 守住底线</a>
+  <a href="#s21" class="lvl2">2.1 底线思维</a>
+  <a href="#s22" class="lvl2">2.2 现金·负债·资产清单</a>
+  <a href="#s23" class="lvl2">2.3 我们的宏观判断：情形A为主</a>
+  <a href="#s24" class="lvl2">2.4 动作清单</a>
+  <a href="#part3" class="lvl2">第三篇 · 工作与职业</a>
+  <a href="#s31" class="lvl2">3.1 总量放缓、结构错配</a>
+  <a href="#s32" class="lvl2">3.2 冰河期：哪些重演、哪些不会</a>
+  <a href="#s33" class="lvl2">3.3 学历：值不值读研/读博</a>
+  <a href="#s34" class="lvl2">3.4 专业与赛道：我们的建议</a>
+  <a href="#s35" class="lvl2">3.5 给普通人的动作清单</a>
+  <a href="#s36" class="lvl2">3.6 中年返贫的日本镜鉴</a>
+  <a href="#part4" class="lvl2">第四篇 · 资产与房子</a>
+  <a href="#s41" class="lvl2">4.1 房子：买还是租</a>
+  <a href="#s42" class="lvl2">4.2 家庭资产怎么配</a>
+  <a href="#s43" class="lvl2">4.3 分人群配置框架</a>
+  <a href="#s44" class="lvl2">4.4 婚姻：长期合伙</a>
+  <a href="#part5" class="lvl2">第五篇 · 医疗与养老</a>
+  <a href="#s51" class="lvl2">5.1 趋势：老龄化是最确定的支出</a>
+  <a href="#s52" class="lvl2">5.2 体系会怎么演化</a>
+  <a href="#s53" class="lvl2">5.3 个人账户空账</a>
+  <a href="#s54" class="lvl2">5.4 普通人怎么提前安排</a>
+  <a href="#part6" class="lvl2">第六篇 · 机会在哪：出海与新产业</a>
+  <a href="#s61" class="lvl2">6.1 国别坐标</a>
+  <a href="#s62" class="lvl2">6.2 日本全民出海史</a>
+  <a href="#s63" class="lvl2">6.3 中国出海机遇期</a>
+  <a href="#s64" class="lvl2">6.4 第三次时代红利</a>
+  <a href="#s65" class="lvl2">6.5 文化出海三阶段</a>
+  <a href="#part7" class="lvl2">第七篇 · 分人群总表与长期主义</a>
+  <a href="#s71" class="lvl2">7.1 五类人群动作总表</a>
+  <a href="#s72" class="lvl2">7.2 长期主义心法</a>
+  <a href="#epilogue" class="lvl2">结语 · 在存量时代做跨周期玩家</a>
+  <a href="#refs">附录 · 参考资料</a>
+</nav>
+<div id="toc-mask"></div>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">新版 · 作者直接判断版 · 单线程执行手册</div>
+  <h1>我们判断，你执行</h1>
+  <p class="sub">这份指南不再把三十五位学者的观点摊开让你自己选边。我们综合他们的判断与 2026 年 10 月的最新数据，直接给出结论、置信度和该做的动作——你只需要照着做，并盯住我们给出的"证伪信号"。</p>
+  <div class="legend">
+    <span class="tag tag-fact">高可信 · 已查证</span>
+    <span class="tag tag-mid">推演 · 中可信</span>
+    <span class="tag tag-low">推演 · 低可信</span>
+  </div>
+</div>
+</div>
+
+<div class="wrap">
+
+<section id="intro">
+  <span class="sec-no">引子</span>
+  <h2>我们的立场与读法</h2>
+
+  <p>2023 年以来，"中国会不会变成日本"成了普通人和媒体讨论经济时绕不开的问题。市面最流行的回答来自 Boden《以日为鉴：衰退时代生存指南》——它把四条假设当成行动纲领：人口宿命、资产负债表恶化、收入预期下行、个体无力论，最后落到"个体该全面降杠杆、躺平避险"。<span class="tag tag-low">推演 · 低可信</span> 我们的评估是：这四条里，方向上有两条站得住、但被推到了过度悲观的极端。</p>
+
+  <p><b>我们对 Boden 四条假设的逐条评估</b>：</p>
+  <p>· <b>A 人口宿命</b>（人口下行→总需求长期收缩）：方向有据，但"宿命"二字过头——人口是逆风不是绝路，蔡昉也只说"未富先老"更严峻、没说必然停滞<span class="tag tag-mid">推演 · 中可信</span>。</p>
+  <p>· <b>B 资产负债表恶化</b>（必须降杠杆避险）：症状存在，但处方抽掉了前提——辜朝明本人强调，资产负债表衰退必须靠政府财政对冲，个体集体躺平只会让通缩自我实现<span class="tag tag-mid">推演 · 中可信</span>。</p>
+  <p>· <b>C 收入预期下行</b>：在地产与青年就业领域真实存在，但被外推到"所有人都该消极"，忽略了新能源、AI、制造业出海仍在扩张<span class="tag tag-mid">推演 · 中可信</span>。</p>
+  <p>· <b>D 个体无力论</b>（宏观超出个体能力、防御即最优）：这是我们最不认同的一条——它把"政府该做什么"偷换成"个体该躺平什么"，何帆的"慢变量找小趋势"、林毅夫的"人口质量红利"都直接反对它<span class="tag tag-low">推演 · 低可信</span>。</p>
+
+  <p><b>这份指南怎么做判断</b>：每一个关键结论都写成"结论 + 置信度 + 数据或学者支撑 + 来源"。学者的观点（林毅夫、周其仁、陆铭、辜朝明、姚洋、蔡昉、达利欧、余永定、张明、罗思义、郑永年等）作为论据内联呈现并标注来源，不再单列为"某派观点"让你去站队。</p>
+
+  <p><b>三级标签</b>：<span class="tag tag-fact">高可信 · 已查证</span>是有官方统计、学术论文或可核验原文支撑的客观事实，附口径；<span class="tag tag-mid">推演 · 中可信</span>与<span class="tag tag-low">推演 · 低可信</span>是我们综合学者观点与最新数据做出的推断，直接标置信度。同一指标有多个口径（如政府债务/GDP），并排列出，不替你选一个"标准答案"。</p>
+
+  <p><b>这一卷只走两步</b>：第一篇我们直接给出"中国和日本到底像不像、像在哪、不像在哪、最危险的是哪几点"的判断；第二篇给出"不管宏观怎么演化，你现在就该执行的现金、负债、资产安全动作"。后续篇章再展开找工作、选专业、进赛道、买房理财、出海。</p>
+
+  <div class="hook">时代判断已经下好了——下一篇，看我们凭什么这么判断。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part1">
+  <span class="sec-no">第一篇</span>
+  <h2>我们对时代的判断 —— 中日像不像</h2>
+
+  <div class="verdict">
+    <b>一句话结论：</b>中国与日本在"人口、地产、通缩压力"三个症状上确实像，但在"发展阶段、土地制度、汇率、政策空间"四个结构维度上不像；最像的部分是地产链收缩与青年就业，最关键的缓冲是财政正在对冲且结果面已改善。这不是"已经是日本"，也不是"绝不会是日本"，而是一条我们正在政府拉动下试图绕开的岔路。<span class="tag tag-mid">推演 · 中高可信</span>
+  </div>
+
+  <h3 id="s11">1.1 中日的四个相同点（数据层面对得上）</h3>
+  <p>以下四条是数据层面的共性，不能假装不存在<span class="tag tag-fact">高可信 · 已查证</span>：</p>
+  <p><b>① 人口见顶与老龄化方向一致、速度更快。</b>日本劳动年龄人口 1995 年见顶、总人口 2008 年见顶（含外国人，总务省口径）；中国劳动年龄人口约 2011 年见顶、总人口 2022 年转负。老龄化率：日本 65 岁以上占 29.4%（2025 年 9 月，总务省）<sup class="ref"><a href="#ref1">[1]</a></sup>，中国约 15.9%（2025 年末，国家统计局公报口径；1% 人口抽样调查 15.8%）<sup class="ref"><a href="#ref2">[2]</a></sup>——中国老龄化绝对值低，但从更低起点上升的斜率更陡。</p>
+  <p><b>② 房地产都从高位回落、家庭资产负债表承压。</b>日本城市地价 1991 年见顶后连跌约 15 年；中国商品房销售面积在 2020–2021 年约 17.6 亿平方米见顶后回落（国投证券（原安信）首席经济学家高善文口径；高善文 2026 年 7 月去世）。</p>
+  <p><b>③ 青年就业压力存在"冰河期"式风险。</b>日本 1990 年代有"就职冰河期世代"，进入就业市场即遇收缩、收入与消费长期受疤痕影响；中国青年失业率在 2023 年高点后经统计口径调整，官方口径下仍处高位、高校毕业生规模逐年创新高——是否会演变为长期疤痕，是我们标记的高风险点之一（见 1.4）。</p>
+  <p><b>④ 都曾出现通缩尾部压力。</b>日本 1998 年进入通缩、GDP 平减指数多年累计近零；中国 2023 年 CPI +0.2%/PPI −3.0%，2025 年一季度 CPI −0.1%/PPI −2.3%。不同的是：到 2026 年，中国 PPI 已结束连续 41 个月负增长、CPI 回到 +1.0%<sup class="ref"><a href="#ref15">[15]</a></sup>——通缩压力在缓解，而不是像日本那样固化。</p>
+
+  <h3 id="s12">1.2 中日的六个不同点（结构上不必照搬日本剧本）</h3>
+  <p>以下六条是"不像"的核心论据<span class="tag tag-fact">高可信 · 已查证</span>（学者论据内联标注）：</p>
+  <p><b>① 发展阶段不同。</b>中国仍是追赶型经济体，人均 GDP 约为美国的 1/6–1/4、城镇化率约 67.9%（2025 年末）；日本 1990 年已完成工业化、人均 GDP 超过美国，是前沿经济体。林毅夫（北大国发院）据此认为中国 2035 年前每年仍有约 8% 增长潜力。</p>
+  <p><b>② 土地产权与供给体系不同。</b>中国是城市国有土地、政府垄断征地、土地财政；日本是私有土地、市场化供给。周其仁（北大）指出，中国城市土地国有下地价内含"体制成本"，资产价格的传导机制与日本根本不同。</p>
+  <p><b>③ 汇率制度不同。</b>中国有资本账户管制，人民币 1995–2005 年钉住 8.28、此后有管理浮动；日元从 1985 年约 240 一路升至 1995 年约 80。麦金农（斯坦福）认为日本通缩根源是"日元被迫永远升值"预期，这一机制在中国并不成立。</p>
+  <p><b>④ 泡沫阶段与杠杆位置。</b>中国房价见顶时的居民杠杆水平、收入与资产价格的相对位置，与日本 1989–1990 年泡沫极值时点并不完全可比——具体逐档对比口径数据待补，我们不在这里凑数。</p>
+  <p><b>⑤ 产业结构与工程师红利不同。</b>中国新能源、电动车、制造业出海仍在扩张，每年 500 多万 STEM 毕业生进入劳动力市场（林毅夫、郑永年论据）；日本 1990 年代是电子产业被打压后没有新产业接上。</p>
+  <p><b>⑥ 政策空间不同。</b>中国 2026 年财政赤字率维持 4%、政府正在主动财政对冲；且结果面已改善——2026 上半年 GDP +4.7%、PPI 结束 41 个月负增长（详见第二篇）。日本 1990 年代是"该出手时犹豫、等到通缩预期固化才动手"。</p>
+
+  <h3 id="s13">1.3 宏观数据对照表</h3>
+  <div class="tbl-wrap"><table>
+    <colgroup><col style="width:18%"><col style="width:41%"><col style="width:41%"></colgroup>
+    <tr><th>指标</th><th>日本（参照）</th><th>中国（当前）</th></tr>
+    <tr><td>GDP 年均增速</td><td>人口红利期约 9.2% → 消失后约 3.8% → 1990 年后约 0.89%（蔡昉引）</td><td>2023 年 +5.2%、2024 年约 5%<span class="tag tag-fact">高可信</span>；林毅夫潜力约 8%、清华 ACCEPT 预测 2026–2030 约 5.8%<sup class="ref"><a href="#ref8">[8]</a></sup>（推演）</td></tr>
+    <tr><td>股市</td><td>日经 1989/12 约 38915 点见顶，后跌约 66%<span class="tag tag-fact">高可信</span></td><td>沪深300 较 2021/2 高点低约 36%（罗奇口径）</td></tr>
+    <tr><td>房价/地价/销售</td><td>城市地价 1991 年见顶后连跌约 15 年<span class="tag tag-fact">高可信</span></td><td>商品房销售 2020–2021 约 17.6 亿㎡见顶（高善文口径）<span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>建筑业/地产占经济</td><td colspan="2">口径争议并排：建筑业占 GDP 总产值约 26% <i>vs</i> 房地产投资占 GDP 约 6–8% <i>vs</i> 制造业增加值占比约 7%</td></tr>
+    <tr><td>政府债务/GDP</td><td>IMF WEO 2026/4 预测 204.4%<sup class="ref"><a href="#ref4">[4]</a></sup>；历史上 2020–2023 年约 230–260% <i>vs</i> 日方常用约 260% <i>vs</i> 达利欧口径约 215%<span class="tag tag-fact">高可信</span></td><td>全口径约 106.9%（IMF WEO 2026/4 预测）<sup class="ref"><a href="#ref4">[4]</a></sup><i>vs</i> 显性约 60% <i>vs</i> BIS 口径 2024 初约 85%（罗奇引）<sup class="ref"><a href="#ref5">[5]</a></sup></td></tr>
+    <tr><td>宏观杠杆率/外债</td><td>—</td><td>全社会杠杆约 280%（CNBS/BIS）<sup class="ref"><a href="#ref5">[5]</a></sup>，外债占比低于 15%<span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>人口转折点</td><td>劳动年龄人口 1995 见顶、总人口 2008 见顶（含外国人，总务省口径）<span class="tag tag-fact">高可信</span></td><td>劳动年龄人口约 2011 见顶、总人口 2022 转负（2025 年末 140489 万、自然增长率 -2.41‰）<span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>老龄化率（65+）</td><td>29.4%（2025 年 9 月，日本总务省；65+ 约 3619 万人）<span class="tag tag-fact">高可信</span></td><td>约 15.9%（2025 年末，国家统计局公报；1% 抽样调查 15.8%）<span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>通缩/物价</td><td>1998 年进入通缩，GDP 平减指数多年累计近零（伯南克引）</td><td>2023 CPI +0.2%/PPI −3.0%；2025Q1 CPI −0.1%/PPI −2.3%；2026 CPI +1.0%、PPI 结束 41 个月负增长转正<span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>政策利率</td><td>政策利率由泡沫期 6.45% 降至 0.03%；BOJ 2025 年内维持 0.5%→2025/12 升至 0.75%→2026/6/16 升至 1.0%（31 年新高）<sup class="ref"><a href="#ref7">[7]</a></sup><span class="tag tag-fact">高可信</span></td><td>2024/9/24 降准，7 天逆回购利率降至 1.5%<sup class="ref"><a href="#ref6">[6]</a></sup><span class="tag tag-fact">高可信</span></td></tr>
+    <tr><td>汇率</td><td>日元 1985 约 240 → 1995 约 80<span class="tag tag-fact">高可信</span></td><td>人民币 1995–2005 钉住 8.28，此后有管理浮动<span class="tag tag-fact">高可信</span></td></tr>
+  </table></div>
+
+  <div id="chart-debt" class="chart"></div>
+  <p class="hint">图：政府债务/GDP 多口径并排。日本三个口径均显著高于中国全口径——这是"政策仍有空间"判断的核心证据<span class="tag tag-fact">高可信</span>。</p>
+
+  <h3 id="s14">1.4 高风险点，与不重蹈极端情形的理由</h3>
+  <h4>我们判断最可能出问题的四点（高风险）</h4>
+  <p><b>① 地产链资产负债表收缩与房价二次探底。</b>2026 年 2 月末商品房待售面积近 8 亿平方米、处历史高位；2026 年 1–8 月房地产开发投资 −19.9%；收储专项债进度：中指研究院不完全统计，截至 2026-09-24 各地累计发行<b>收购存量商品房</b>专项债超 135 亿元、收购超 2.3 万套、建面超 190 万㎡<sup class="ref"><a href="#ref18">[18]</a></sup>；另一口径<b>收购存量闲置土地</b>：截至 2026-09 公示总金额超 8100 亿、实际发行超 6000 宗、3.1 亿㎡<sup class="ref"><a href="#ref19">[19]</a></sup>——两口径并排看，收购"房子"规模仍很小，远低于托底存量所需量级；收购"土地"规模更大但仍在发行途中。<span class="tag tag-mid">推演 · 中可信（机构监测口径，非官方汇总）</span> 这是最实的拖累。</p>
+  <p><b>② 青年就业的"冰河期"式长期疤痕。</b>若青年失业压力长期化，会像日本就职冰河期那样影响一代人的收入与消费预期<span class="tag tag-mid">推演 · 中可信</span>（蔡昉人口论延伸）。</p>
+  <p><b>③ 通缩尾部风险。</b>若财政对冲执行不及预期，PPI/CPI 可能重回零附近——巴克莱据此称中国财政为"事实性紧缩"，这个判断我们保留为 6–7 成置信度的扣分项<span class="tag tag-mid">推演 · 中可信</span>。</p>
+  <p><b>④ 未富先老。</b>蔡昉反复强调：中国是在人均收入仍低时进入老龄化，社会缓冲比日本 1990 年代更薄。</p>
+
+  <h4>我们判断大概率不会重演"失去 30 年"最极端情形的理由</h4>
+  <p>后发追赶仍有余力（林毅夫约 8% 潜力、清华 ACCEPT 约 5.8%）；产业升级在发生（新能源/电动车/AI 从跟跑转领跑，郑永年、罗思义 ICOR 口径）；最关键的是<b>财政正在对冲且结果面已改善</b>——2026 上半年 GDP +4.7%、PPI 转正、失业率 5.2%，通缩预期实质缓解<span class="tag tag-fact">高可信</span>。这条路能不能走通，取决于执行——这就是第二篇要解决的问题。</p>
+
+  <h3 id="s15">1.5 我们补一层：三个长周期叠加的位置判断</h3>
+  <p><b>结论：中国当前同时处在康波周期尾部、库兹涅茨建筑/地产周期下行段、朱格拉设备更新周期中段的叠加位置——这就是"像日本"的深层结构原因；但每一层都不必走成日本那条极端路径。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>Boden 书外视频把三层周期并列：康波长波（约 50–60 年，技术革命驱动）尾部下行、库兹涅茨周期（约 18–25 年，建筑/地产驱动）从顶部回落、朱格拉周期（约 7–11 年，设备投资驱动）中段——三层叠加时，企业与家庭同时缩表，体感最冷。<span class="tag tag-low">推演 · 低可信（Boden 框架，书外视频转述）</span></p>
+  <p><b>我们的对冲与修正</b>：①林毅夫（北大国发院）的后发优势框架提示，康波尾部不等于中国自身技术周期见底——中国仍在新能源、电动车、电池、AI 应用层的追赶段，与日本 1990 年已到全球技术前沿不同；②达利欧"和谐去杠杆"框架提示，库兹涅茨下行段的走向取决于债务货币化与财政对冲的组合，不必然走成日本被动通缩；③朱格拉周期在中国仍有"设备更新+以旧换新"政策在主动托底。三层周期共振是真的，但共振出多深的坑，是政策选择问题。<span class="tag tag-mid">推演 · 中可信</span></p>
+  <p><b>再补一段 1998 中国自己的大过剩史</b>：1998 年中国经历过一次产能大出清——国企大下岗+亚洲金融危机外需骤降+住房市场化改革前夕，三轮压力同时压来；最终靠加入 WTO（2001）外需爆发+房地产商品化+城镇化，用外需与居民部门加杠杆完成出清。罗思义（John Ross）据此认为中国的 ICOR（增量资本产出比）长期优于日本 1973 年后，高投资率不必然崩溃。<span class="tag tag-mid">推演 · 中可信</span> 对照今天：外需环境（关税战）与人口结构（2025 年出生 792 万）已不同于 1998，但"用新一轮结构性出清+外部需求打开"的剧本仍有部分可复演。</p>
+
+  <div class="hook">时代判断已经下完：像的是症状，不像的是结构，危险点在地产与青年就业，缓冲在财政对冲。接下来，不管这条路往哪走，先把底线守住。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part2">
+  <span class="sec-no">第二篇</span>
+  <h2>守住底线 —— 现金 · 负债 · 资产安全清单</h2>
+
+  <h3 id="s21">2.1 底线思维：先不输，再谈赢</h3>
+  <p>Boden 那套"全面降杠杆躺平"在底线层面有部分价值——保现金流、不加高杠杆、不持有高成本低流动性资产，这些动作任何情景下都不算错。<span class="tag tag-low">推演 · 低可信</span> 但我们不接受它的极端处方：它抽掉了"政府责任"和"结构机会"两个前提。辜朝明的框架是——资产负债表衰退中货币政策失效，必须靠政府持续财政对冲；林毅夫、何帆、姚洋则反复指出，即便总量放缓，仍有结构性赛道。所以这一篇分两层：<b>无论宏观怎么走都该做的底线动作</b>，和<b>只有在"对冲失败"证伪信号出现后才加码的防御</b>。</p>
+
+  <h3 id="s22">2.2 「现金 · 负债 · 资产」安全清单</h3>
+  <p class="lead">勾选你已经做到的项。这些是操作参考，不是官方标准。</p>
+
+  <div class="cards">
+    <div class="card">
+      <h5>现金 · 应急储备</h5>
+      <label><input type="checkbox"> 储备 3–6 个月刚性支出（双收入、现金流稳定家庭）</label>
+      <label><input type="checkbox"> 6–12 个月（单收入/自由职业/行业波动大）</label>
+      <label><input type="checkbox"> 12–24 个月（临近退休或收入高度不确定）</label>
+      <p class="note">通缩情景下现金购买力相对上升；再通胀情景下纯持币被稀释——这正是 2.3 两情形分叉的根源。</p>
+    </div>
+    <div class="card">
+      <h5>现金 · 等价物</h5>
+      <label><input type="checkbox"> 活期/定期存款、货币基金</label>
+      <label><input type="checkbox"> 短债基金、国债逆回购（流动性与收益折中）</label>
+      <label><input type="checkbox"> 不把应急金锁入长期定存或低流动性理财</label>
+      <p class="note">原则是"随取随用"优先，不是收益最大化。</p>
+    </div>
+    <div class="card">
+      <h5>负债 · 房贷</h5>
+      <label><input type="checkbox"> 搞清重定价日与利率变动方向</label>
+      <label><input type="checkbox"> 月供/收入比控制在可承受区间（参考 35–40%，非官方红线）</label>
+      <label><input type="checkbox"> 提前还贷 vs 保留流动性：先算机会成本，不凭焦虑提前还</label>
+      <p class="note">我们判断当前偏情形 A（见 2.3），持现金的机会成本在上升，不宜恐慌式提前还贷。</p>
+    </div>
+    <div class="card">
+      <h5>负债 · 消费贷与担保链</h5>
+      <label><input type="checkbox"> 不借消费贷加杠杆投资</label>
+      <label><input type="checkbox"> 不替他人担保、不卷入互保链</label>
+      <label><input type="checkbox"> 资产负债率留安全垫，避免阴跌期被迫卖资产还债</label>
+      <p class="note">阴跌行情里，被迫在低点变现是最大的风险来源。</p>
+    </div>
+    <div class="card">
+      <h5>资产 · 三分法</h5>
+      <label><input type="checkbox"> 自住：满足居住，不为升值加杠杆</label>
+      <label><input type="checkbox"> 投资：只保留人口流入都市圈核心区位（陆铭"不是日本化是分化"）</label>
+      <label><input type="checkbox"> 现金等价物：见上，流动性优先</label>
+      <p class="note">人口流出地的高成本低流动性资产最危险。</p>
+    </div>
+    <div class="card">
+      <h5>资产 · 人力资本</h5>
+      <label><input type="checkbox"> 把教育/技能/健康当"资产"持续投入（林毅夫人口质量红利）</label>
+      <label><input type="checkbox"> 关注结构性赛道（新能源、AI、制造业出海）而非总量下注（何帆慢变量）</label>
+      <p class="note">这是 Boden 清单里最缺、却被六学者反复强调的一类"资产"。</p>
+    </div>
+  </div>
+
+  <h3 id="s23">2.3 我们的宏观判断：情形 A 为主，置信度 6–7 成</h3>
+  <p class="lead">不再让你自己读信号猜方向。我们直接下判断，并给出证伪条件。</p>
+
+  <p><b>先把两个情形说清楚，再讲我们的判断落在哪</b>：</p>
+  <p><b>情形 A · 政府持续财政对冲</b>：政府用高位赤字、特别国债、化债置换、存量房收储等手段持续扩张资产负债表，替代私人部门收缩，把经济从通缩与资产阴跌中往回拉——对应辜朝明所说的"财政对冲"，是避免"资产负债表衰退"自我实现的关键。</p>
+  <p><b>情形 B · 对冲不足</b>：财政扩张力度不够、化债与收储低于预期，通缩延续、资产阴跌、企业居民继续集体还债——这是 Boden 框架成立的情景：现金流为王、降杠杆有效、全面防御不吃亏。</p>
+
+  <div class="scn A">
+    <h4>作者判断（2026 年 10 月）</h4>
+    <p><b>当前中国处于情形 A（政府持续财政对冲）为主，置信度约 6–7 成</b>——有条件判断，不是无条件押注。三组证据支持 A，三个保留项说明为什么只打 6–7 折。</p>
+
+    <p><b>支撑证据（三组）</b><span class="tag tag-fact">高可信 · 已查证</span></p>
+    <p><b>财政组</b>：2026 年财政赤字率维持 4%（连续第二年高位）、赤字规模 5.89 万亿元（较上年 +2300 亿）；一般公共预算支出首次突破 30 万亿元（+4.4%）；超长期特别国债 1.3 万亿 + 特别国债 3000 亿注资国有大行；新增地方专项债限额 4.4 万亿元；财政部 2026-10-09 报告称"资金拨付全面提速、克制期结束、加大逆周期调节"<sup class="ref"><a href="#ref10">[10]</a></sup>。<i>口径：财政部预算安排与报告。</i></p>
+    <p><b>化债组</b>：2025 年 2 万亿元置换债全部发行完毕、置换后利息成本平均下降 2.5 个百分点以上；2026 年继续 2 万亿元再融资置换 + 8000 亿元专项债补充地方财力<sup class="ref"><a href="#ref11">[11]</a></sup>。<i>口径：财政部化债安排。</i></p>
+    <p><b>结果面</b>：2026 上半年 GDP 同比 +4.7%（Q1 +5.0%、Q2 +4.3%，符合全年目标）；CPI 同比 +1.0%；PPI 结束持续 41 个月负增长后转正；名义 GDP 约 +5.3%；失业率均值 5.2%<sup class="ref"><a href="#ref2">[2]</a></sup>。<i>口径：国家统计局。</i> 通缩预期实质缓解，这是"对冲起效"而非"通缩延续"的证据。</p>
+
+    <p><b>三个保留（为什么只打 6–7 成）</b></p>
+    <p>1. <b>执行摩擦</b>：政府支出累计同比早期一度 -3%（2025 年为 +3.7%）<span class="tag tag-fact">高可信 · 已查证</span>；巴克莱据此称中国财政为"事实性紧缩（de facto austerity）"<sup class="ref"><a href="#ref9">[9]</a></sup>——但最新 1–8 月累计已回正至 +1.2%（财政部 2026-09-18），摩擦在收敛，纸面扩张与实物落地存在时间差<span class="tag tag-mid">推演 · 中可信</span>。</p>
+    <p>2. <b>房地产是最实拖累</b>：待售面积仍处高位（2026 年 2 月末近 8 亿平方米，8 月末已降至 7.53 亿㎡、连续 6 个月同比下降）；2026 年 1–8 月房地产开发投资 -19.9%；收储专项债：收购存量商品房口径截至 2026-09 累计仅约 135 亿元（中指院不完全统计），收购存量土地口径发行超 6000 宗、3.1 亿㎡——房子侧收储规模仍远低于托底所需。<i>口径：国家统计局/中指研究院监测口径。</i></p>
+    <p>3. <b>化债重心偏"置换存量 + 防新增"</b>，是防风险与稳增长的平衡，而非辜朝明式不惜代价扩张——"对冲是真的，彻底性需观察"<span class="tag tag-mid">推演 · 中可信</span>。</p>
+
+    <p><b>证伪信号（出现任一条，即把判断下调为情形 B 防御为主）</b><span class="tag tag-mid">推演 · 中可信</span>（判断标准）：</p>
+    <p>① PPI 再度转负 / CPI 重回零附近；② 财政支出累计增速再度转负并延续（巴克莱"事实紧缩"坐实）；③ 收储专项债发行持续远低于预期、去化压力不回、居民存款增速继续走高；④ 房地产开发投资进一步大幅下探、房价指数二次探底；⑤ 政策转向"防风险优先"、明确收紧增量刺激。</p>
+
+    <p><b>策略含义（A 的底、B 的垫）</b>：不因政府在扩张就激进加杠杆——地产链未稳、私人部门资产负债表修复仍需时间（辜朝明：财政对冲是前提，但个体不必抢跑）；也不因通缩担忧就全面躺平现金——通缩已实质缓解，情形 A 下过度防御会踏空（罗奇/巴克莱：执行摩擦真实存在，需盯住证伪信号）。<b>底线动作在两种情形下都做，加码动作只在证伪信号出现后执行。</b></p>
+  </div>
+
+  <h4>情形 A 下，五类人群该怎么做</h4>
+  <div class="persona">
+    <div class="row"><div class="hd">人群</div><div class="hd">底线动作</div><div class="hd">对冲备选 + 风险</div></div>
+    <div class="row"><div class="pn">应届生/初入职场</div><div>降杠杆、控支出、延迟大额消费</div><div>投人力资本、进结构赛道；过度防御会错过职业投资窗口</div></div>
+    <div class="row"><div class="pn">中年高房贷</div><div>提前还贷、保现金流</div><div>保留核心城市优质资产；收储落地后弱二线以下房产反弹乏力</div></div>
+    <div class="row"><div class="pn">中年低负债</div><div>增厚储蓄、不加杠杆</div><div>适度配置优质资产/权益，避免纯现金化被稀释</div></div>
+    <div class="row"><div class="pn">自由职业</div><div>压缩固定支出</div><div>建立多元收入，关注财政扩张带来的服务业需求修复</div></div>
+    <div class="row"><div class="pn">临近退休</div><div>极致安全垫</div><div>保留部分短久期资产对冲再通胀，不宜全仓现金</div></div>
+  </div>
+
+  <h4>情形 B（证伪信号触发后），加码这些防御</h4>
+  <div class="persona">
+    <div class="row"><div class="hd">人群</div><div class="hd">加码动作</div><div class="hd">风险提示</div></div>
+    <div class="row"><div class="pn">应届生/初入职场</div><div>应急储备拉长到 12–24 个月、延迟置业</div><div>仍应投人力资本，不可彻底躺平</div></div>
+    <div class="row"><div class="pn">中年高房贷</div><div>提前还高息负债、保现金流</div><div>避免极端去杠杆卖在低位</div></div>
+    <div class="row"><div class="pn">中年低负债</div><div>维持防御、增厚储蓄</div><div>通缩下现金相对安全</div></div>
+    <div class="row"><div class="pn">自由职业</div><div>压缩固定支出、现金垫加厚</div><div>优先保现金流不断</div></div>
+    <div class="row"><div class="pn">临近退休</div><div>极致安全垫、规避风险资产</div><div>防政策突然转向（情形再切换）</div></div>
+  </div>
+
+  <h3 id="s24">2.4 小结：你现在就能执行的动作</h3>
+  <h4>无论 A 还是 B，现在就做</h4>
+  <p>建够 3–12 个月应急现金；月供/收入比留安全垫；不借消费贷加杠杆、不卷入互保链；资产按自住/投资/现金等价物三分；持续投人力资本与健康。</p>
+  <h4>仅在证伪信号出现后才加码</h4>
+  <p>应急储备拉长到 12–24 个月；提前还高息负债；不新增风险资产；人口流出地的高成本低流动性房产优先处置。<b>证伪信号一旦消退、判断回到 A，这些加码动作要同步撤掉——别把防御变成习惯。</b></p>
+
+  <div class="hook">底线守住了，下一步是别在找工作、选专业、买房理财上做错选择——那是第三篇的事。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part3">
+  <span class="sec-no">第三篇</span>
+  <h2>工作与职业 —— 在存量市场里怎么安身</h2>
+
+  <div class="verdict">
+    <b>一句话结论：</b>就业的主要矛盾正在从"总量不够"转向"结构错配"——不是没有工作，而是岗位需求与毕业生供给对不上。对普通人来说，应对之道不是"躺平等复苏"，而是<b>保现金流、押注结构性赛道、把学历和技能投在回报率最高的方向</b>。<span class="tag tag-mid">推演 · 中高可信</span>
+  </div>
+
+  <h3 id="s31">3.1 就业总量放缓、结构错配</h3>
+  <p><b>我们的判断：不是"没工作"，而是"错配"。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>先看数据<span class="tag tag-fact">高可信 · 已查证</span>（国家统计局口径）：2026 上半年城镇调查失业率均值 5.2%<sup class="ref"><a href="#ref2">[2]</a></sup>，与 2025 年基本持平、并未失控；但青年失业率在 2023 年高点后经统计口径调整，官方口径下仍处高位，同时高校毕业生规模逐年创新高——这就是"错配"的证据：一方面企业抱怨招不到合适的技能工人，另一方面大量毕业生挤在有限的白领岗位上。</p>
+  <p>何帆（上海交大）的"慢变量"框架说得直白：总量放缓期，旧产业在收缩、新产业在扩张，就业机会不是消失了，而是从旧部门搬到了新部门——找不到工作的人，往往是旧部门里不肯挪窝的人。我们同意这个判断：<b>与其抱怨岗位少，不如先确认自己站在扩张的那一侧</b>。</p>
+  <p><b>但必须提醒：官方失业率系统性偏低，真实压力比数字更严峻。</b><span class="tag tag-mid">推演 · 中可信</span> 城镇调查失业率至少有三处"低估"：其一，<b>灵活就业被整体算作"已就业"</b>——人社部口径灵活就业人员约 2 亿<sup class="ref"><a href="#ref12">[12]</a></sup>，但其中大量是外卖、快递、零工、个体等收入不稳、社保薄弱、随时可被替代的岗位，本质更接近"半失业/就业不足"，把它们都算作就业会压低失业率<span class="tag tag-fact">高可信 · 已查证</span>；其二，<b>找不到工作、干脆退出劳动力市场的"丧志工人"不计入失业</b>，青年（16–24 岁）失业率还在 2023 年经历过暂停发布、后调整口径（剔除在校学生）才恢复<span class="tag tag-fact">高可信 · 已查证</span>；其三，<b>高校毕业生"去向落实率"有水分</b>——高校为完成就业率考核，普遍要求尚未落实工作的毕业生也填报"灵活就业/自由职业"等去向，即媒体多次报道的"被就业"，使官方就业率偏乐观<span class="tag tag-fact">高可信 · 已查证</span>。<b>所以请按"比 5.2% 更严峻"来做准备，不要被"数据平稳"麻痹</b>——这反而强化了下面的动作：主动站到扩张的那一侧，比等一个被美化的数字回暖更可靠。</p>
+
+  <h3 id="s32">3.2 日本"就职冰河期"：哪些会在中国重演，哪些不会</h3>
+  <p>日本 1990 年代"就职冰河期世代"——赶上就业收缩期的那批人，终身收入轨迹被压低、结婚率生育率随之下降——是我们最该警惕的镜鉴。逐条判断如下：</p>
+  <div class="cards">
+    <div class="card">
+      <h5>会/部分重演 <span class="tag tag-mid">中可信</span></h5>
+      <p><b>开局低谷的疤痕效应</b>：第一份工作的平台与起点会影响此后十年的收入轨迹——这一条在劳动力市场里被反复验证，中国年轻白领的入职起薪已现压力。</p>
+      <p><b>考公热与体制偏好</b>：经济不确定性上升时，稳定优先于回报，体制内岗位竞争白热化——这不是中国独有，是所有收缩期经济体的共性。</p>
+      <p><b>学历贬值</b>：学历供给超过岗位需求，本科文凭的"筛选溢价"在下降——研究生扩招后这一趋势已在发生。</p>
+      <p><b>灵活用工/非正规就业比例上升</b>：正式编制岗位稀缺，派遣制、外包、零工占比上升。</p>
+    </div>
+    <div class="card">
+      <h5>不会重演 <span class="tag tag-mid">中可信</span></h5>
+      <p><b>体制差异</b>：中国财政正在对冲、政府仍在扩张需求（见第二篇情形 A），不像日本 1990 年代那样"政府袖手旁观"。</p>
+      <p><b>产业升级仍在发生</b>：新能源、电动车、AI、制造业出海仍在创造高质量岗位，不是日本当年"电子产业被打压后无新产业接上"的局面。</p>
+      <p><b>人口盘子与斜率不同</b>：蔡昉"未富先老"是风险，但另一面是——青年劳动力供给的绝对盘子仍大，且每年 500 多万 STEM 毕业生（林毅夫"人口质量红利"）意味着技能型岗位仍有缺口。</p>
+    </div>
+  </div>
+
+  <h3 id="s33">3.3 学历：哪些学历仍值，要不要读研/读博</h3>
+  <p><b>我们的判断：学历仍是稀缺品，但"为逃避就业而读"不值。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>蔡昉强调"未富先老"的另一面是——在老龄化社会，人力资本仍是最稀缺的要素，受教育年限的回报不会消失；林毅夫"人口质量红利"说的也是同一件事：每年 500 多万 STEM 毕业生是中国的底牌。姚洋在 2026 博鳌转向后也承认，人口下降的冲击被高估，真正决定生产率的是人投在哪。</p>
+  <p><b>核心判据只有一条：读完能不能在未来职业生涯获得明确、较好的回报。</b>能，就值得；不能，再便宜、再能拖时间也不值得。</p>
+  <p><b>值得读研/读博的情况</b>（作者结论）：① <b>目标职业有硬性学历门槛、且你确定要走这条路</b>——医生、科研、高校教职、部分算法/研发岗，没有这个学历连门都进不去，读研/读博是入场券、回报路径清晰；② <b>目标岗位的起薪与晋升对硕士及以上有明确溢价</b>，且你能进入有产业出口的方向/导师（计算机、电子、多数工科、临床医学等），投入产出算得过来；③ <b>需要一次赛道切换，且新方向明确指向扩张部门</b>（如从收缩的传统行业转向新能源、AI、高端制造、医疗），研究生是你重新进入目标赛道成本最低的通道，且你已有具体目标岗位。</p>
+  <p><b>不值得读研/读博的情况</b>：① <b>单纯为推迟就业、"再读两三年看看"、随大流考研</b>——用确定的时间和金钱换一个不确定的文凭，逃避期结束后市场只会更卷；② <b>没有职业规划、不知道自己要干什么</b>（这一条最关键，下面专门展开）；③ <b>方向本身在收缩、或该专业学历溢价不升反降</b>——大量普通院校的文科、泛管理、泛商科硕士，毕业后与本科生竞争同一岗位、起薪无优势，反而因年龄更大更被动，<b>尤其文科</b>；④ <b>需要举债、或牺牲几年现金流去换一个没有明确出口的文凭</b>；⑤ <b>"家里出得起、不用借债"也不构成值得读的理由</b>——可承受成本只是"不被现金流压垮"的前提，不等于值得；若读完无法获得较好职业回报，这两三年的机会成本照样沉没，<b>尤其文科，即使不花家里大钱，也可能是一笔亏本的时间投资</b>。</p>
+  <p><b>为什么"没有职业规划的人"最不值得读研/读博</b>：</p>
+  <p>· <b>研究生教育是"专业化"，不是"通识延长"</b>。本科还允许你广泛试错，研究生一入学就要求你聚焦一个细分方向、跟一位导师、做一类课题。没有职业规划，等于在信息最不足的时候随机锁定一个方向和导师，而这个选择会框定你未来两到七年的技能栈、人脉与第一份工作的赛道。</p>
+  <p>· <b>读研最大的成本不是学费，是机会成本</b>。这两三年里，同龄人在岗位上积累经验、晋升、试错并完成转向，你却在一个可能与目标职业无关的课题上；等毕业才发现不喜欢、不对口，转换成本比本科毕业时更高——年龄更大、薪资预期更高、沉没成本更难割舍。</p>
+  <p>· <b>文凭只提高门槛，不提供方向</b>。没有目标时，研究生学历无法替你回答"我要做什么"；很多人读完依然迷茫，只是把"不知道干什么"推迟了三年，还背上了更高的自我期待和更窄的退路。</p>
+  <p>· <b>正确顺序是"先有职业目标 → 再判断该目标是否需要研究生学历 → 需要才读"</b>，而不是"先读了再说"。没有规划时，更优的选择是用低成本方式先试错——实习、做项目、直接入行、向从业者请教——在实践中找到方向，再决定是否用读研/读博做一次精准切换。</p>
+  <p><b>一句话：研究生是"带着问题去拿的工具"，不是迷茫时的避风港。</b></p>
+  <p><b>再补一段美国学历周期的镜鉴</b><span class="tag tag-mid">推演 · 中可信</span>：美国战后也经历过完整的学历通胀周期——1970 年代本科文凭即"中产入场券"，1990 年代硕士成为多数白领岗位默认门槛，2000 年代博士在高校与科研系统也开始"过剩"。规律是：学历的价值 = 岗位需求 × 学历供给；当高校扩招把某一学历变成大众标配，它在劳动力市场上就自动贬值，岗位会向上一级学历重新要价。中国当下正处于"本科→硕士"这一段通胀中段，硕士学历的边际回报在收窄，但博士在硬科技与高端服务业仍有稀缺溢价。<b>结论：不要把"读研"当成防御性默认选项，要把它当成对特定职业门槛的精准响应。</b></p>
+
+  <h3 id="s34">3.4 专业与赛道：我们直接给建议</h3>
+  <div class="tbl-wrap"><table>
+    <colgroup><col style="width:18%"><col style="width:42%"><col style="width:40%"></colgroup>
+    <tr><th>方向</th><th>我们的供需判断</th><th>适合谁 / 不适合谁</th></tr>
+    <tr><td>考公/体制内</td><td>稳定溢价高、竞争激烈、上岸周期拉长<span class="tag tag-mid">推演</span></td><td>适合：风险厌恶、能接受长备考、追求长期稳定者；不适合：想快速积累市场化经验、对收入弹性有要求者</td></tr>
+    <tr><td>教师/医生</td><td>门槛高、职业周期长、抗周期性强<span class="tag tag-fact">高可信</span>（老龄化推高医护需求）</td><td>适合：愿意投入长周期培养、能承受前期低收入者；不适合：想短期变现者</td></tr>
+    <tr><td>理工科（硬科技/制造）</td><td>新能源、电动车、半导体、装备制造仍在扩张，技能工人与工程师短缺<span class="tag tag-mid">推演</span>（林毅夫/郑永年论据）</td><td>适合：理工科基础扎实、能做深做专者；不适合：只想做通用技能、不愿积累硬壁垒者</td></tr>
+    <tr><td>数据科学/AI</td><td>需求真实但供给膨胀快，"会调包"型岗位在贬值，有行业 know-how 的复合型人才稀缺<span class="tag tag-mid">推演</span></td><td>适合：有垂直行业经验 + 数据能力者；不适合：仅靠短期培训班、无行业纵深者</td></tr>
+    <tr><td>地产链/传统金融地产岗</td><td>收缩部门，岗位与薪酬双降<span class="tag tag-fact">高可信</span>（开发投资 −19.9%）</td><td>若已在其中，优先内部转岗或横向迁移到新基建/新能源相关部门，不要原地等待复苏</td></tr>
+  </table></div>
+
+  <h4>我们补三段日本反面教训（书内 Boden 提供，经学者对冲）</h4>
+  <p><b>① 考公的"长期结局"不是稳态</b><span class="tag tag-mid">推演 · 中可信</span>：日本 1990 年代初公务员曾是最炙手可热的职业，但财政紧缩持续二十年后，日本公务员经历了降薪、裁员冻结、霞が関（中央机关）加班文化下的高离职率——"稳定"本身是有代价的，当财政长期收缩，体制内岗位的实际购买力与晋升通道也会被压缩。中国侧对照：2026 年度国考招录 3.81 万、过审 371.8 万、竞争比 98:1<sup class="ref"><a href="#ref16">[16]</a></sup>——这是七年扩招后<b>首次下降</b>；其中税务系统 2026 招录 25004 人占 65.6%（中公教育统计），主因是 1980 年代初入职人员集中退休<sup class="ref"><a href="#ref20">[20]</a></sup>。2027 年度公告预计 2026 年 10 月中旬发布，截至今日未发；培训机构预测区间约 3.5–3.9 万、分歧明显（兰校等预测缩招 10–15% 至 3.5–3.6 万，另有预测维持 3.7–3.9 万）——<b>仅为机构预测，非官方，分歧大，公告发布后以官方数为准</b>。机构与学者普遍判断：退休高峰支撑短期招录，但 2028 年后集中退休基本结束、自然减员可能下降约四成，叠加部分地方"退三进一/退二进一"，编制释放将收窄。<b>结论：考公仍是当下最稳的选择之一，但不要把它当成"进去就一辈子安全"的终点；要接受"未来十年体制内薪酬增长可能长期跑输通胀、且招录规模可能在 2028 年后收窄"的预期。</b></p>
+  <p><b>② 医生：日本 2004 新临床研修制度的意外后果</b><span class="tag tag-mid">推演 · 中可信</span>：日本 2004 年引入两年强制性新临床研修制度后，医学生毕业后流向从大学附属医院转向地方与急诊科室，短期内加剧了东京 23 区与偏远地区的医生分布失衡，牙科医生则因口腔治疗需求结构性下降进入长期过剩。中国侧对照：2025 年末全国执业（助理）医师 530.6 万、每千人口 3.78 人（国家卫健委 2026-08-28 公报）<sup class="ref"><a href="#ref17">[17]</a></sup>——总量已接近中等发达国家水平，增量机会在老年医学、康复、护理、全科，而非传统大医院编制。<b>结论：学医仍值，但要提前选"老龄化需要的科室"，不要盲目挤三甲热门科室。</b></p>
+  <p><b>③ 理工科的"背叛"教训</b><span class="tag tag-mid">推演 · 中可信</span>：日本制造业在 1990 年代后长期重管理（综合职）轻技术，工程师晋升通道不如商科出身的综合职；叠加制造业外迁中国与东南亚，本土工程师岗位长期收缩。中国当下在新能源、电动车、电池、装备制造仍在扩张，但要警惕"行业上行期攒下的工程师红利，在下一轮周期变成冗余"。何帆（北大）建议把"可迁移技能"放在"公司专属技能"之上。<b>结论：学理工科要选"有全球竞争力的赛道"，不要选"依附国内单一地产链/政策补贴"的赛道。</b></p>
+  <p><b>④ 教师过剩：出生率断崖直接传导到岗位</b><span class="tag tag-mid">推演 · 中可信</span>：少子化对教师岗位的挤压已经开始。官方口径：2025 年全国普通小学招生 1461.74 万（教育部 2026-07-06 公报），较 2024 年 1616.63 万一年再降约 155 万；在园幼儿 3225.52 万（2024 年 3583.99 万）<sup class="ref"><a href="#ref21">[21]</a></sup>。<b>2026 秋季小学新生估算约 1234 万人</b>——秦玉友等依据统计局出生人口与毛入学率推算（6 年前出生队列对应入学，2020 年出生约 1200 万，误差不足 3%）<sup class="ref"><a href="#ref22">[22]</a></sup>，方法论背景为北师大中国教育与社会发展研究院队列要素法<sup class="ref"><a href="#ref23">[23]</a></sup>；<b>此为学者估算值，非官方实际招生数，教育部实际数将于 2027 年 6–7 月公报发布后更新</b>。并排看：2023 年峰值约 1843 万 → 2025 年 1461.74 万 → 2026 估算 1234 万，三年降幅约 1/3。<b>结论：想当老师的人，要提前意识到小学教师岗位正在收缩；幼儿园与小学段最先受冲击，中学与高校因延迟退休缓冲稍慢；选师范方向时优先考虑老龄化相关（老年教育、康复护理）或素质教育/职业教育方向。</b></p>
+
+  <h3 id="s35">3.5 给普通人的动作清单</h3>
+  <div class="cards">
+    <div class="card">
+      <h5>应届生/初入职场</h5>
+      <label><input type="checkbox"> 先保现金流不断，再挑赛道——不要为"等更好的"空窗超过 6 个月</label>
+      <label><input type="checkbox"> 第一份工作优先选"扩张部门里能积累硬技能"的岗位，而不是"听起来光鲜但在收缩"的岗位</label>
+      <label><input type="checkbox"> 用 12 个月的成本上限换一次赛道切换，不要无限期试错</label>
+      <p class="note">适用条件：应急现金够 6–12 个月（第二篇）。</p>
+    </div>
+    <div class="card">
+      <h5>转行者</h5>
+      <label><input type="checkbox"> 优先投"人力资本回报率最高"的方向——硬技能、有壁垒、能叠加你已有行业经验</label>
+      <label><input type="checkbox"> 不要裸辞 all-in；先在本职工作外验证新方向的入门门槛</label>
+      <label><input type="checkbox"> 若在收缩部门（地产链/传统中介），主动横向迁移到新基建、新能源、出海相关环节</label>
+      <p class="note">适用条件：情形 A 判断未被证伪前，不必极端防御；证伪信号出现后再压缩试错成本。</p>
+    </div>
+  </div>
+
+  <h3 id="s36">3.6 特别提醒：中年返贫的日本镜鉴</h3>
+  <p><b>我们的判断：中国 35–50 岁、背着高位房贷、行业在收缩的中年群体，是最需要提前布局的一类人——不要等到裁员发生才反应。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>日本经验：Boden 书外视频指出，1990 年后日本 35 岁以上能从派遣/非正规岗位重回正式社员的比例不到 20%；高位房贷+收入骤降+不敢断供，是日本中年"返贫"的典型组合<span class="tag tag-low">推演 · 低可信（Boden 书外转述）</span>。何帆（北大）的对冲建议是：在行业仍在时就主动积累"可迁移技能"——把公司专属技能沉淀为行业通用方法论；姚洋（北大国发院）则提示，中国财政在对冲、产业升级仍在发生，不必把日本剧本照搬到自己身上。</p>
+  <p><b>我们给的具体动作</b>：① 房贷月供/收入比压到 35% 以下，留出至少 12 个月家庭现金流；② 每年用 5–10% 时间更新一次技能栈（不是考证，是跟一次新工具/新行业）；③ 不要在 40 岁后 all-in 单一雇主，保持外部人脉与行业信息通道；④ 如果在收缩行业，提前 24 个月开始横向迁移，不要等到被裁。</p>
+
+  <div class="hook">工作安身之后，下一步是把钱和房子放对位置——那是第四篇「资产与房子」的事。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part4">
+  <span class="sec-no">第四篇</span>
+  <h2>资产与房子 —— 买不买、怎么配</h2>
+
+  <div class="verdict">
+    <b>一句话结论：</b>房子的全国普涨时代已经结束，进入"空间分化"——核心城市群、人口持续流入的城市，优质区位的房产仍是长期可持有的资产；弱二线以下、人口收缩城市、远郊无产业支撑的房产，正在从"资产"变成"负债"。家庭资产配置上，我们判断情形 A 为主（置信度 6–7 成，见第二篇）：底线动作（保现金、控杠杆）两情形都做，加码防御只在证伪信号出现后启动。<span class="tag tag-mid">推演 · 中高可信</span>
+  </div>
+
+  <p class="hint">本篇为作者基于公开数据与学者观点的判断框架，<b>不构成投资建议，据此操作风险自担</b>。</p>
+
+  <h3 id="s41">4.1 房子：现在还能不能买</h3>
+  <p><b>我们的判断：全国普涨结束、进入空间分化，买房决策必须先分清"自住"与"投资"，再看城市、区位、租金回报率、杠杆承受力四件事。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <p><b>先看为什么不能照搬日本剧本</b>。日本城市地价 1991 年见顶后连跌约 15 年<span class="tag tag-fact">高可信 · 已查证</span>——但中日土地制度根本不同。周其仁（北大）指出：中国是城市国有土地、政府垄断征地、土地财政；日本是私有土地、市场化供给。这意味着中国房地产周期的驱动机制（土地供给由政府掌控、与地方财政绑定）与日本不完全同构，不能简单"日本跌 15 年=中国也要跌 15 年"。<span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <p><b>再看分化的方向</b>。陆铭（上海交大）的判断是"经济不是日本化、是分化"——人口持续向大城市圈集聚，核心城市优质区位的房产仍有长期需求支撑；而人口流出地、收缩城市、远郊新区，房产流动性会越来越差、持有成本却在上升。<span class="tag tag-mid">推演 · 中可信</span> 数据侧印证：2026 年 2 月末商品房待售面积近 8 亿平方米、处历史高位，2026 年 1–8 月房地产开发投资 −19.9%，收购存量商品房收储专项债截至 2026-09 累计仅约 135 亿元——总量仍在出清，远未到"普涨回暖"时点。<span class="tag tag-fact">高可信 · 已查证</span></p>
+
+  <div class="cards">
+    <div class="card">
+      <h5>什么情况，我们认为可以买 <span class="tag tag-mid">推演</span></h5>
+      <p>① <b>自住需求真实、且你在核心城市群人口持续流入的城市工作生活</b>——自住不为升值，买的是长期居住稳定性；</p>
+      <p>② <b>月供/收入比控制在第二篇给出的安全区间（参考 35–40%，非官方红线）</b>，且应急现金已留够 6–12 个月，不因买房掏空安全垫；</p>
+      <p>③ <b>标的是核心区、轨道交通可达、有产业与公共资源支撑的房子</b>，不是远郊新区、不是无产业支撑的旅游/养老概念盘；</p>
+      <p>④ <b>租金回报率接近持有成本</b>（即便不住、出租也能覆盖大部分月供与持有成本）——这是判断"买了不后悔"的硬指标。</p>
+    </div>
+    <div class="card">
+      <h5>什么情况，我们认为坚决租 <span class="tag tag-mid">推演</span></h5>
+      <p>① <b>所在城市人口在流出、产业在收缩</b>——房子的长期需求在走弱，买入即套牢；</p>
+      <p>② <b>为投资性加杠杆买房</b>——总量出清未结束，弱二线以下房产反弹乏力，杠杆投资是在阴跌行情里加风险；</p>
+      <p>③ <b>租金回报率远低于持有成本</b>（月供+物业+折旧显著高于同区位租金）——持有即负现金流；</p>
+      <p>④ <b>自身现金流不稳</b>（自由职业、行业波动大、刚换赛道）——月供是刚性支出，阴跌期被迫卖房是最大风险来源。</p>
+    </div>
+  </div>
+  <p class="note">一句话：<b>自住可买（核心城市、月供可控），投资加杠杆缓行；收缩城市的房产，优先处置而非加仓。</b></p>
+
+  <h3 id="s42">4.2 家庭资产怎么配</h3>
+  <p><b>我们的判断：情形 A 为主（政府在财政对冲，置信度 6–7 成）下，既不能极端躺平现金，也不能激进加杠杆——按"底线动作 + 温和配置"执行，把加码防御留到证伪信号触发后。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <p>把几位学者的判断并进来对照（均内联呈现，不单列阵营）：</p>
+  <p>· <b>Boden</b>（《以日为鉴》，开明出版社 2025）<sup class="ref"><a href="#ref14">[14]</a></sup>主张个体全面降杠杆、保现金流、避泡沫——<span class="tag tag-low">推演 · 低可信</span> 我们采纳其"保现金流"的底线部分，不采纳其"全面躺平"的极端处方。</p>
+  <p>· <b>辜朝明</b>（野村）强调：资产负债表衰退中必须靠政府持续财政对冲，个体集体还债只会让通缩自我实现——这是第二篇情形 A 的理论根据；但他同时强调，<b>对冲是政府的事，个体不必抢跑加杠杆</b>。</p>
+  <p>· <b>达利欧</b>（Bridgewater）"和谐去杠杆"框架：本币内债+温和再通胀是比通缩式去杠杆更优的路径——对应中国当前政府债务/GDP 全口径约 106.9%（IMF WEO 2026/4 预测）、远低于日本 IMF 2026 预测 204.4%（历史 2020–2023 约 230–260%）/日方约 260%/达利欧口径约 215% 的空间，支持"不必恐慌式去杠杆"。<span class="tag tag-fact">高可信 · 已查证</span></p>
+  <p>· <b>麦金农</b>（斯坦福）汇率论：中国有资本账户管制，人民币不存在日元 1985–1995 被迫大幅升值的通缩机制——这是"不必照搬日本货币剧本"的论据。</p>
+
+  <div class="scn A">
+    <h4>底线动作（情形 A、B 下都做）</h4>
+    <p>① 应急现金 3–12 个月刚性支出，以存款/货币基金/短债/国债逆回购持有，随取随用；</p>
+    <p>② 不借消费贷加杠杆投资、不卷入互保链；</p>
+    <p>③ 房贷利率重定价日与月供承受力搞清，不凭焦虑提前还贷，也不盲目加杠杆；</p>
+    <p>④ 资产按自住/投资/现金等价物三分，投资部分只保留核心城市群优质区位。</p>
+  </div>
+  <div class="scn B">
+    <h4>加码防御（证伪信号触发后才启动）<span class="tag tag-mid">推演 · 中可信</span></h4>
+    <p>沿用第二篇五条证伪信号：PPI 再度转负/CPI 重回零附近；财政支出累计增速再度转负并延续；收储专项债发行持续远低于预期；房地产开发投资进一步大幅下探、房价指数二次探底；政策转向"防风险优先"、明确收紧增量刺激。<b>出现任一条，应急储备拉长到 12–24 个月、提前还高息负债、不新增风险资产、处置人口流出地高成本低流动性房产；证伪信号消退后同步撤回，别把防御变成习惯。</b></p>
+  </div>
+
+  <h3 id="s43">4.3 分人群配置框架</h3>
+  <p>同一份底线，不同人群的侧重不同。我们直接给结论<span class="tag tag-mid">推演 · 中可信</span>：</p>
+  <div class="persona">
+    <div class="row"><div class="hd">人群</div><div class="hd">配置侧重</div><div class="hd">风险提示</div></div>
+    <div class="row"><div class="pn">高房贷家庭</div><div>优先保现金流、搞清利率重定价；核心区自住房可保留，弱二线以下投资性房产优先处置</div><div>不恐慌式提前还贷（情形 A 下持现机会成本上升），也不加杠杆加仓</div></div>
+    <div class="row"><div class="pn">低负债中年</div><div>应急现金留够后，可逐步、分批配置权益与优质资产，避免全仓现金被再通胀稀释</div><div>分批建仓、不押注单一板块；证伪信号出现即暂停加仓</div></div>
+    <div class="row"><div class="pn">自由职业/收入波动</div><div>应急储备直接按 12–24 个月档准备；不加杠杆、不锁长定存</div><div>现金流第一，投资动作等收入稳定后再启动</div></div>
+    <div class="row"><div class="pn">临近退休</div><div>降波动、保现金流；极致安全垫为主，保留部分短久期资产对冲再通胀，不全仓现金</div><div>防政策突然转向（情形再切换），规避高风险资产</div></div>
+  </div>
+  <p class="hint">以上为配置框架，<b>不构成投资建议，据此操作风险自担</b>；具体产品选择请结合自身情况并咨询持牌专业人士。</p>
+
+  <h3 id="s44">4.4 顺带说一句：婚姻，是两个人的"长期合伙"</h3>
+  <p><b>我们的判断：在收入增长放缓的时代，婚姻的经济价值反而在上升——两个有稳定现金流的人共同生活，住房、家政、风险管理的边际成本显著低于单身；但前提是婚前把三件事对齐，否则婚姻会从"风险共担"变成"风险叠加"。</b><span class="tag tag-low">推演 · 低-中可信</span></p>
+  <p>Boden 书外视频把婚姻作为"家庭资产负债表"的一部分讨论：日本 1990 年代后中年离婚潮集中在"高位房贷+收入骤降+夫妻长期冷感"的组合，日本式"熟年离婚"在 2000 年后持续上升。<span class="tag tag-low">推演 · 低可信（Boden 转述）</span> 我们的对冲是：婚姻不是投资工具，但它是风险管理工具——把它当成一家两人合资的小公司来治理。</p>
+  <p><b>婚前必须对齐的三件事</b>：① 重大负债（房贷/车贷/消费贷/父母赡养）谁担、多少；② 消费观与储蓄率（一个月光一个高存，五年内必爆冲突）；③ 风险偏好（一个激进加杠杆一个坚决不借，买房/投资必吵）。这三件事不对齐，婚姻在经济下行期就是放大器；对齐了，它是你在冰河期最稳的现金流备份。</p>
+
+  <div class="hook">钱和房子放对位置之后，下一步是在老龄化里安排好医疗与养老——那是第五篇「医疗与养老」的事。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part5">
+  <span class="sec-no">第五篇</span>
+  <h2>医疗与养老 —— 老龄化是最确定的一笔长期支出</h2>
+
+  <div class="verdict">
+    <b>一句话结论：</b>与地产、就业的不确定性相比，老龄化是这份指南里<b>最确定</b>的趋势——它不会"复苏"，只会按斜率推进。我们的判断是：在"保基本、广覆盖"的大框架下，医保与养老金会继续控费、保基本，但个人需要自担的部分将持续上升；普通人的对策不是等体系全覆盖，而是<b>医保不断缴、提前配置健康险、尽早开个人养老金账户、把健康本身当最高回报的投资</b>。<span class="tag tag-mid">推演 · 中高可信</span>
+  </div>
+
+  <p class="hint">本篇为作者基于公开数据与学者观点的判断框架，<b>不构成具体保险/投资建议，据此操作风险自担</b>；具体产品选择请结合自身情况并咨询持牌专业人士。</p>
+
+  <h3 id="s51">5.1 先把趋势说死：老龄化的方向、斜率与"未富先老"</h3>
+  <p><b>我们的判断：这是少数几个"不用猜方向、只算斜率"的判断——老龄化的方向已定，且中国是在收入仍较低时进入老龄化。</b><span class="tag tag-fact">高可信 · 已查证</span></p>
+  <p>前文已列数据，这里只收束：日本 65 岁以上占比 29.4%（2025 年 9 月，日本总务省）；中国约 15.9%（2025 年末，国家统计局公报；1% 抽样调查 15.8%）——绝对值只有日本一半，但从更低起点上升的斜率更陡。劳动年龄人口：日本 1995 年见顶、中国约 2011 年见顶；总人口：日本 2008 年见顶（含外国人）、中国 2022 年转负（2025 年末 140489 万）。</p>
+  <p>蔡昉（社科院）反复强调的核心是"<b>未富先老</b>"：中国是在人均 GDP 仍约为美国 1/6–1/4 时进入老龄化，社会、财政、家庭的缓冲都比日本 1990 年代更薄。这意味着两件事——第一，养老与医疗的长期支出是<b>刚性、递增</b>的；第二，指望"国家全包"不现实，体系只能保基本。</p>
+
+  <p><b>日本的镜鉴（已核验事实，附来源口径）</b><span class="tag tag-fact">高可信 · 已查证</span>：</p>
+  <p>· <b>长期护理保险（介护保险）2000 年 4 月施行</b>：日本 1997 年通过《介护保险法》、2000 年 4 月在宅与设施同时施行，把原本混在医保里的老年人长期护理剥离出来、由社会保险独立筹资——来源：日本国立社会保障・人口問題研究所（IPSS）、厚生劳动省公开资料<sup class="ref"><a href="#ref13">[13]</a></sup>。</p>
+  <p>· <b>按病种/按日定额付费控费</b>：日本自 2003 年前后引入 DPC（诊断群分类、按住院日定额付费，类 DRG）控制住院费用、缩短平均住院日——这是支付方式从"按项目付费"转向"打包付费"的国际通行路径。</p>
+  <p>· <b>三轮医改与"老年医疗制度"</b>：日本 1980 年代以来多次修订健康保险法、2008 年建立高龄者医疗制度（后期高齢者医疗制度），把 75 岁以上老人医疗单独筹资、控费——来源：厚生劳动省。</p>
+  <p>结论：日本用三十年走出来的路径——<b>控费（支付方式改革）、分级诊疗、长护险独立、延迟退休、多支柱养老</b>——就是中国大概率要走的路。差别只在节奏，不在方向。<span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <h3 id="s52">5.2 医保与养老体系会怎么演化</h3>
+  <p><b>我们的判断："保基本、广覆盖"框架不变，但个人自担部分会上升；不要把全部指望押在基本医保与基本养老金上。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>对照日本路径，中国已经/正在发生的演化方向：</p>
+  <p>· <b>控费端</b>：药品耗材集采、DRG/DIP 支付方式改革已在全国推开——与日本 DPC 同源，目的是挤掉过度医疗水分、控制医保基金支出<span class="tag tag-fact">高可信 · 已查证</span>。</p>
+  <p>· <b>照护端</b>：长期护理保险自 2016 年起在多个城市试点、持续扩面——对标日本 2000 年介护保险，方向已明确，只是覆盖面与待遇标准仍在摸索<span class="tag tag-fact">高可信 · 已查证</span>。</p>
+  <p>· <b>退休端</b>：延迟退休改革已启动（2025 年起渐进式实施）——与日本提高领取年龄的路径一致<span class="tag tag-fact">高可信 · 已查证</span>。</p>
+  <p>· <b>养老三支柱</b>：基本养老保险（第一支柱）、企业/职业年金（第二支柱）、个人养老金账户（第三支柱，2022 年起试点、2024 年起全国推开）——政策意图很清楚：基本保底层，第二三支柱要个人和单位一起加。<span class="tag tag-fact">高可信 · 已查证</span></p>
+  <p>我们据此判断：<b>基本医保与基本养老金会继续"保基本"，但"活得好、看得起大病、护理有人管"的部分，需要个人用商业保险与储备补上</b>——这是制度设计的明确方向，不是悲观预测。</p>
+
+  <h3 id="s53">5.3 个人账户空账：你的养老金账户里，有多少钱是真的</h3>
+  <p class="lead">（超出 Boden 原书与书外视频范围，本节为书外延伸新增。）</p>
+  <p><b>我们的判断：第一支柱实质运行是现收现付，你个人账户上看到的"记账额"不等于你个人所有的实账资产；空账持续存在且扩大，NDC（名义账户制）并未兑现自平衡；2040 年代基金池面临耗尽压力是方向判断，具体年份参数依赖。制度中期靠财政+国资+储备不会发不出钱，但替代率趋势性下降、领取条件趋严是确定方向。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <h4>空账怎么来的</h4>
+  <p>1990 年代中国确立"社会统筹+个人账户"统账结合模式（1993 十四届三中全会、1997 国发 26 号文全国落地）。制度建立前已退休的"老人"与已工作多年的"中人"，其个人账户并无对应积累——这部分转轨成本，靠<b>挪用当期在职职工个人账户缴费去发当期养老金</b>消化，形成空账。2001 年起辽宁等地试点"做实"个人账户（真正把钱存进去），但做实额长期徘徊在 2700–3400 亿，远小于记账额；2013 年十八届三中全会后官方转向"完善个人账户"（事实 NDC 思路），2015 年后不再公布空账口径。<span class="tag tag-fact">高可信 · 已查证</span><sup class="ref"><a href="#ref24">[24]</a></sup></p>
+
+  <h4>现在多大：三套口径并排</h4>
+  <div class="tbl-wrap"><table>
+    <colgroup><col style="width:22%"><col style="width:48%"><col style="width:30%"></colgroup>
+    <tr><th>口径</th><th>数值</th><th>含义</th></tr>
+    <tr><td>存量记账口径（郑秉文历年）</td><td>2007 空账首破 1 万亿 → 2011 记账 2.49 万亿/做实 2703 亿/空账 2.22 万亿 → 2013 空账 3.1 万亿 → <b>2015 记账 4.7 万亿/做实不足 3300 亿/空账约 4.4 万亿（空账率超九成）</b><sup class="ref"><a href="#ref24">[24]</a></sup></td><td>历史序列；2015 后官方不再单列</td></tr>
+    <tr><td>最新存量精算（薛惠元、吴欣芸《保险研究》2024 年第 5 期）</td><td>个人账户给付缺口（存量）<b>2024 约 16.8 万亿 → 2050 约 42.5 万亿</b>；论文明确"当前个人账户空账运行"<sup class="ref"><a href="#ref25">[25]</a></sup></td><td>未来空账规模外推</td></tr>
+    <tr><td>流量与基金池口径（同文+郑秉文团队 2025 精算）</td><td>个人账户超支年均增 13.4%、2050 达 1.72 万亿/年（占当年统筹基金收入 15.68%）；郑秉文《精算报告 2025-2060》基准：当期收不抵支 2036 年、累计结余耗尽 2044 年（旧版 2019-2050 为 2028/2035）<sup class="ref"><a href="#ref26">[26]</a></sup></td><td>穿底时点因改革后移约 8–9 年，但未消除</td></tr>
+    <tr><td>官方总量口径（并排，不矛盾）</td><td>2025 底三项社保累计结余 10.2 万亿、企业养老累计结余 7.3 万亿、可支付月数"稳步增加"；全国社保基金战略储备约 3.3 万亿+划转国有资本 2.26 万亿<sup class="ref"><a href="#ref27">[27]</a></sup></td><td>回答"当期能不能发得出"，不回答"个人账户历史空账"</td></tr>
+  </table></div>
+  <p class="hint">两个口径是同一制度的两个侧面：当期靠统筹互济+财政补贴+全国统筹调剂发得出，但个人账户历史空账/隐性债务并未消失。</p>
+
+  <h4>NDC 为什么没解决</h4>
+  <p>NDC（名义账户制）= 放弃做实、改记账+精算参数自平衡，要求计发月数、记账利率、待遇调整三参数随寿命与抚养比动态调整。实际运行中：计发月数仍沿用 2005 年预期寿命表（已严重滞后）、记账利率锚定不清、待遇仍随平均工资捆绑上调——导致个人账户发完后由统筹继续垫付（即"超支"）。薛惠元测算：不上调计发月数超支年增 13.4%；若渐进上调新退休人员计发月数，2042 年起可减轻 5 成以上超支压力。郑秉文 2025-12 仍明确："部分积累制改革目标没有实现，在现收现付融资方式下隐性债务巨大"。<span class="tag tag-fact">高可信 · 已查证</span><sup class="ref"><a href="#ref28">[28]</a></sup></p>
+
+  <h4>作者判断</h4>
+  <p>· <b>[高可信 · 已查证]</b> 空账持续存在且扩大，NDC 未兑现自平衡；第一支柱实质是现收现付，个人账户记账额≠个人所有的实账资产。抚养比从 2025 年约 2.67:1（一个退休者对应约 2.67 个缴费者）向 2060 年约 1:1.12 倒挂演进<sup class="ref"><a href="#ref29">[29]</a></sup>。</p>
+  <p>· <b>[推演 · 中可信]</b> 2044 是郑秉文团队 2025 版精算基准情景结果，不是预言；方向（2040 年代基金池面临耗尽压力）可信度高，具体年份参数依赖、中等可信。机制重点：2035→2044 后移靠延迟退休、全国统筹、中央调剂、国资划转实现——每后移一次，代价都由参数承担：多缴、晚退、待遇涨幅收窄（2025 年养老金涨幅已降至 2%）、计发月数未来大概率上调。制度中期靠财政+国资+储备不会发不出钱，但替代率趋势性下降、领取条件趋严是确定方向。</p>
+  <p>· <b>缓冲垫如实写不夸大</b>：3.3 万亿战略储备、2.26 万亿国资划转、财政补贴与税收能力是真实缓冲；但薛惠元测算 2050 年个人账户超支占财政收入 2.66%，论文判断完全由财政填"不现实"——缓冲垫在缩小，不是无限。</p>
+
+  <h4>个人动作（解法写实）</h4>
+  <p>① 把第一支柱当<b>保底现收现付</b>，不要按账户记账额规划退休收入；② 用足第三支柱个人养老金税优（2025 底第三支柱仅约 500 亿、参与度极低，税优额度尚未被充分使用），关注企业/职业年金是否随单位缴纳；③ 健康投资与人力资本是回报率最高的"养老资产"——决定你能否晚退、能否持续有收入；④ 关注计发月数改革与延迟退休细则对自身退休时点的影响。</p>
+
+  <h3 id="s54">5.4 普通人怎么提前安排</h3>
+  <p><b>我们的判断：动作不复杂，但要早——医保不断缴、健康险补足大病、个人养老金账户尽早开、把健康本身当最高回报的投资。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <div class="cards">
+    <div class="card">
+      <h5>医保与大病：不断缴是底线</h5>
+      <p>① 职工医保（有工作单位时）或居民医保（灵活/无业时）<b>绝不断缴</b>——断缴会直接影响报销资格与连续缴费年限。</p>
+      <p>② 用好大病保险与医疗救助：基本医保之上的大病保险是医保局已有的二次报销机制，符合条件自动触发，不必额外买。</p>
+      <p>③ <b>百万医疗险/重疾险要不要买</b>：我们的结论是——优先补"大病兜底"的缺口（基本医保目录外、自费药、ICU 费用），预算有限时先配高杠杆的百万医疗险，再考虑给付型重疾险；<b>不必买返还型、捆绑理财型的"全家桶"</b>，那是在为不需要的功能付高费。</p>
+      <p class="note">具体产品选择请咨询持牌专业人士，本篇不推荐具体公司或产品。</p>
+    </div>
+    <div class="card">
+      <h5>个人养老金账户：值不值得开</h5>
+      <p>我们的结论：<b>对有稳定工资、且个税税率在 10% 及以上档的人，值得开</b>——每年 1.2 万元额度、当期可税前扣除、账户内投资（基金/储蓄/保险）暂不征税，本质是一个"延税+强制储蓄"的养老补充。</p>
+      <p>但要注意：钱要到退休才能取，流动性差；如果你收入波动大、或近期就要用这笔钱，不要为了省税把流动性锁死。<b>结论：税率够档、钱长期不用，就开；否则不必强求。</b></p>
+    </div>
+    <div class="card">
+      <h5>健康本身：最高回报的投资</h5>
+      <p>医疗养老支出里，最大头不是买药，是"失能/失智后的长期照护"——日本介护保险就是为解决这件事而生。对普通人，<b>规律体检、控制慢病、保持运动与睡眠</b>，是回报率最高的"抗失能"投入，比任何理财产品都确定。</p>
+      <p>这一条没有标签争议——它是 <span class="tag tag-fact">高可信 · 已查证</span> 的公共卫生常识。</p>
+    </div>
+  </div>
+
+  <h4>按年龄分，动作侧重不同</h4>
+  <div class="persona">
+    <div class="row"><div class="hd">人群</div><div class="hd">动作侧重</div><div class="hd">我们的结论</div></div>
+    <div class="row"><div class="pn">临近退休（50+）</div><div>医保关系与缴费年限搞清；百万医疗险视年龄与健康状况能否买；养老储备以低波动、保现金流为主</div><div>优先确保基本医保不断缴、大病有兜底；商业医疗险年龄大了保费陡升、未必划算，重在用好基本医保与大病保险</div></div>
+    <div class="row"><div class="pn">中年（35–50）</div><div>医保不断缴；补一份百万医疗险+视预算配重疾险；尽早开个人养老金账户、每年顶格存；开始储备护理金</div><div>这是配置的黄金窗口——收入稳定、税率够档、健康尚可，越早开始复利越长</div></div>
+    <div class="row"><div class="pn">年轻（20–35）</div><div>医保不断缴；先把应急现金与负债底线做好（第二篇）；个人养老金账户可开可缓，但健康习惯现在就要养</div><div>不必现在重仓养老储备，但医保不能断；这一阶段最高回报的"养老投资"是健康与职业资本（第三篇）</div></div>
+  </div>
+  <p class="hint">以上为配置框架，<b>不构成具体保险/投资建议，据此操作风险自担</b>。</p>
+
+  <div class="hook">医疗养老安排妥当之后，下一步是在分化的世界里找新机会——出海与新产业，那是第六篇的事。</div>
+</section>
+
+</div>
+
+<div class="wrap">
+
+<section id="part6">
+  <span class="sec-no">第六篇</span>
+  <h2>机会在哪 —— 出海与新产业</h2>
+  <div class="verdict">
+    <b>一句话结论：</b>在存量时代，最大的增量不在国内总量，而在两个方向——一是中国产业能力向全球市场的外溢（产品→工厂→品牌→本地供应链），二是新技术革命（新能源/电动车/电池/AI）仍在创造的新岗位。机遇与风险并陈：关税战、地缘、本地化门槛、佩蒂斯式再平衡警示都真实存在，不盲目乐观。<span class="tag tag-mid">推演 · 中可信</span>
+  </div>
+
+  <h3 id="s61">6.1 国别坐标：先把中国放在全球地图上</h3>
+  <div class="tbl-wrap"><table>
+    <colgroup><col style="width:14%"><col style="width:43%"><col style="width:43%"></colgroup>
+    <tr><th>经济体</th><th>关键数据（2023 口径）</th><th>对中国的镜鉴</th></tr>
+    <tr><td>日本</td><td>1990 泡沫破裂后连跌；长期通缩；2026/6 BOJ 利率升至 1.0%（31 年新高）</td><td>本篇主对照</td></tr>
+    <tr><td>韩国</td><td>生育率约 0.7（全球最低）；首尔房价 2022–2023 调整约 40%</td><td>低生育+高房价对内需的挤压比中国更极端，警示<span class="tag tag-mid">推演</span></td></tr>
+    <tr><td>台湾地区</td><td>半导体产业占 GDP 约 16%；高度依赖单一行业</td><td>单一产业支柱的脆弱性</td></tr>
+    <tr><td>美国</td><td>2024–2025 软着陆；AI 资本开支高峰；贸易保护主义</td><td>再平衡与关税战的来源方</td></tr>
+    <tr><td>欧洲/德国</td><td>2023–2024 制造业收缩；GDP -0.3% 区间</td><td>传统制造业被新能源中国产能挤压</td></tr>
+    <tr><td>新兴市场</td><td>俄能源转口+3.6%；越南承接产能外溢；巴西农矿+电商；印度高增长但教育/女性劳参率瓶颈</td><td>中国出海的目的地与竞争对手并存</td></tr>
+  </table></div>
+
+  <h3 id="s62">6.2 日本全民出海史：一段完整的教训</h3>
+  <p><b>我们的判断：日本 1985 广场协议后日元从 240 升至 80，本土制造利润被汇率吃掉，倒逼企业海外设厂；三十年下来日本成了全球最大净债权国，但本土制造业空心化、国内就业与工资长期停滞。</b><span class="tag tag-fact">高可信 · 已查证</span></p>
+  <p>Boden 书内第十四章把这段史称为"海外再造日本"：日本企业在北美、东南亚、中国建工厂，海外资产规模一度超过本土 GDP。<span class="tag tag-low">推演 · 低可信（Boden 转述）</span> 我们的对冲：林毅夫（北大国发院）认为中国当前阶段与日本 1985 年有本质不同——中国仍在追赶、城镇化还有空间、本土市场规模远大于日本当年；郑永年（港理工）则提示产业升级不能停在"组装出海"，要做品牌与研发出海。</p>
+
+  <h3 id="s63">6.3 中国的出海机遇期：从卖产品到建体系</h3>
+  <p><b>我们的判断：中国正处在"产品出海→产能出海→品牌与本地供应链出海"的三段跃迁中段——新能源车、光伏、电池、跨境电商是主力；这是未来十年最大的结构性增量，但门槛在快速抬高。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>事实层：东南亚电动车市场中国品牌市占约 75%（2023）；韩国六大战略产业份额从 8.4% 降至 6.5%（2023）；德国 2023 年 GDP -0.3% 部分受中国新能源产能挤压。<span class="tag tag-fact">高可信 · 已查证</span> 罗思义（John Ross）的对冲观点是：中国高投资率（固定投资/GDP 长期 40%+）不是不可持续，而是产业链完整与规模效应的来源；佩蒂斯（Michael Pettis）则警示：再平衡要求消费占比上升，出海不能无限替代内需。</p>
+  <p><b>对个人的含义</b>：出海不是"移民"，而是"跟着中国产业能力去海外"——工程、供应链、本地化运营、跨文化合规、小语种+专业复合人才，是未来十年最稀缺的组合。余永定（社科院）提示外需环境在恶化（关税战、地缘），不要把出海当成无门槛的顺风车。</p>
+
+  <h3 id="s64">6.4 第三次时代红利：要素重新定价</h3>
+  <p><b>我们的判断：Boden 所说的"第三次时代红利"，本质是要素从"被低估的旧体系"向"被重新定价的新体系"迁移——产业链、高学历人才、资本，都在主动向海外与新行业重新配置。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>关税战客观上淘汰了"投机性出海"（把货卖给海外中间商赚差价），催生"深度本土化"（本地建工厂、雇本地员工、做本地品牌）。对应到个人：英语+专业能力+跨文化理解，是这一轮红利的门票。<span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <h3 id="s65">6.5 文化出海：缓解文科就业难的暗线</h3>
+  <p><b>我们的判断：文化出海分三阶段——单品出海（游戏/短剧/网文）→ 生态出海（米哈游/TikTok 式平台）→ 符号渗透（中国审美与生活方式被接受）。前两阶段已在发生，第三阶段需要时间。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>对文科毕业生的含义：游戏策划、短剧编导、本地化翻译、跨境内容运营，是少数仍在扩张的文科岗位。但要清醒——这个赛道头部效应极强、收入方差极大，不是"文科普涨"。<span class="tag tag-mid">推演 · 中可信</span></p>
+
+  <div class="hook">机会在哪看清之后，最后一篇——把所有判断汇总成一张"分人群行动总表"，并说清楚心态这件事。</div>
+</section>
+
+<div class="wrap">
+
+<section id="part7">
+  <span class="sec-no">第七篇</span>
+  <h2>分人群综合行动总表 · 与长期主义</h2>
+
+  <h3 id="s71">7.1 五类人群 × 三阶段动作总表</h3>
+  <p class="lead">把第二篇 2.3、第四篇 4.3、第五篇 5.3 的分人群建议汇总成一张表。底线动作两情形都做；情形 A 加码只在证伪信号出现后启动；长期动作是跨周期复利。</p>
+  <div class="tbl-wrap"><table>
+    <colgroup><col style="width:14%"><col style="width:28%"><col style="width:24%"><col style="width:17%"><col style="width:17%"></colgroup>
+    <tr><th>人群</th><th>底线动作（两情形都做）</th><th>情形 A 加码（对冲起效）</th><th>情形 B 加码（证伪后）</th><th>长期动作</th></tr>
+    <tr><td>应届生（22–26）</td><td>先保现金流 6–12 个月；进扩张部门攒硬技能；不裸辞</td><td>可适度跳槽追成长性岗位；开始定投指数</td><td>缩空窗期到 3 个月内；优先稳定雇主</td><td>每年更新技能栈；保持外部人脉</td></tr>
+    <tr><td>中年高房贷（35–50）</td><td>月供/收入压到 35% 以下；12 个月家庭现金垫；不提前消费贷</td><td>用富余现金流逐步配权益；不加杠杆追房</td><td>提前还贷部分高息负债；压缩非必要支出</td><td>积累可迁移技能；提前 24 个月横向迁移</td></tr>
+    <tr><td>中年低负债（35–50）</td><td>应急现金 6–12 个月；医保不断；健康险补足大病</td><td>逐步配置权益与优质核心城市自住改善</td><td>降波动、加短债/存款；不抄底收缩城市房产</td><td>开个人养老金账户；每年顶格存</td></tr>
+    <tr><td>自由职业</td><td>12–24 个月现金垫；自己交社保医保；不依赖单一客户</td><td>用周期上行期利润锁定长期客户/产品</td><td>收缩非必要开支；优先接现金流稳定的项目</td><td>把个人能力产品化（课程/工具/小而美经营）</td></tr>
+    <tr><td>临近退休（55+）</td><td>降波动、保现金流；医保不断；健康第一</td><td>保留部分短久期资产对冲再通胀</td><td>不全仓权益；规避高风险资产</td><td>安排长护险与遗嘱；健康管理是最高回报投资</td></tr>
+  </table></div>
+  <p class="hint">以上为作者基于公开数据与学者观点的判断框架，<b>不构成投资/职业建议，据此操作风险自担</b>。</p>
+
+  <h3 id="s72">7.2 长期主义：在冰河期活下去的心法</h3>
+  <p><b>我们的判断：接受周期、放弃暴富幻想、把"稳健+健康+持续学习+良好关系"当作真正的复利——这不是鸡汤，是日本冰河期仍能活好的那批人共同的特征。</b><span class="tag tag-mid">推演 · 中可信</span></p>
+  <p>Boden 全书结语把心态与长期主义作为收束：日本冰河期二十年里，仍有一批人凭专业技能出海、做小而美的经营、保持学习与身体管理，过得不差；垮掉的那批人，共同点是"用 1980 年代的预期要求 2000 年代的现实"。<span class="tag tag-low">推演 · 低可信（Boden 书内结语转述）</span> 何帆（北大）"慢变量"框架的对冲是：不要把时代周期当成全部，个人选择、健康、家庭关系、持续学习这些慢变量，才是跨周期真正决定你过得好不好的东西。</p>
+  <p><b>五条心法</b>：① 不要和上一代的高点比较（他们赶上了中国最快的 30 年，那是历史红利，不是你的基准线）；② 接受"年化 5–8% 已经是好结果"，不要幻想翻倍；③ 健康是最大的养老储备（进医院一次能吃掉你五年投资收益）；④ 保持一段不依赖工作的关系（家人/老友/伴侣）；⑤ 持续学习，但学"可迁移"的，不学"公司专属"的。</p>
+
+  <div class="hook">全书七篇到此结束。</div>
+</section>
+
+<div class="wrap">
+
+<section id="epilogue">
+  <span class="sec-no">结语</span>
+  <h2>在存量时代做跨周期玩家</h2>
+  <p>这份指南从"看懂时代"出发——中日像的是症状（人口、地产、通缩尾部），不像的是结构（发展阶段、土地制度、汇率、政策空间）；危险点在地产链收缩与青年就业疤痕，缓冲在财政对冲与产业升级。</p>
+  <p>然后是"守住底线"——先不输再谈赢，底线动作两情形都做，加码防御只在证伪信号触发后启动。接着是"工作安身"——冰河期不是没工作，是错配；学历要为职业目标服务，不要为逃避就业读。然后是"资产与房子"——全国普涨结束、空间分化，自住与投资分开判断；婚姻当长期合伙来治理。再然后是"医疗与养老"——老龄化最确定，医保不断、健康险补大病、个人养老金尽早开。最后是"机会在哪"——出海与新产业仍是最大增量，但关税战与地缘让门槛快速抬高。</p>
+  <p><b>我们综合 35 位学者与 2026-10 最新数据后，给出的最核心判断是：中国不会简单复制日本"失去 30 年"的极端剧本，但会经历一个更长、更分化、更考验个体选择的调整期。你不需要预测明天——你只需要把底线守住、把可迁移技能练厚、把家庭与健康管好，然后在证伪信号出现时不慌、在机会出现时敢动。</b></p>
+  <p class="lead" style="text-align:center;margin-top:24px">—— 全书完 ——</p>
+</section>
+
+</div>
+
+</div>
+
+<div class="wrap">
+
+<section id="refs">
+  <span class="sec-no">附录</span>
+  <h2>参考资料</h2>
+  <p class="lead">正文中以 [n] 标注的来源集中于此。学者个人观点作为论据内联呈现，不在此重复列出；口径为数据口径属性，保留在正文。</p>
+  <ol>
+    <li id="ref1"><b>日本总务省 / 统计局</b>．人口动态统计与人口推计：65 岁以上人口占比 29.4%（2025 年 9 月敬老日时点，3619 万人）；2024 年 10 月时点 29.3%。总人口 2008 年见顶（含外国人口径）。</li>
+    <li id="ref2"><b>中国国家统计局</b>．2025 年统计公报与 1% 人口抽样调查：65+ 占 15.9%（2025 年末公报口径）/15.8%（1% 抽样）；总人口 140489 万、自然增长率 -2.41‰（2025 年末）；城镇化率 67.9%；城镇调查失业率 2026 上半年均值 5.2%；2026 上半年 GDP +4.7%（Q1 +5.0%/Q2 +4.3%）、CPI +1.0%、PPI 2026 年 3 月转正结束连续 41 个月负增长、名义 GDP 约 +5.3%；商品房待售面积近 8 亿㎡（2 月末）/7.53 亿㎡（8 月末，连续 6 个月同比下降）；房地产开发投资 -19.9%（2026 年 1–8 月）。</li>
+    <li id="ref3"><b>高善文（国投证券（原安信））</b>．中国商品房销售面积 2020-2021 约 17.6 亿平方米见顶口径（2026 年 7 月去世）。</li>
+    <li id="ref4"><b>IMF</b>．World Economic Outlook (April 2026) DataMapper：日本一般政府总债务/GDP 2026 年预测 204.4%（历史 2020–2023 约 230–260%）；中国 2026 年预测 106.9%。</li>
+    <li id="ref5"><b>BIS（国际清算银行）</b>．Credit to non-financial sector：中国 BIS 口径政府债务 2024 初约 85%（罗奇引）；全社会杠杆约 280%（CNBS/BIS）。</li>
+    <li id="ref6"><b>中国人民银行</b>．2024/9/24 降准，7 天期逆回购操作利率降至 1.5%。</li>
+    <li id="ref7"><b>日本銀行（BOJ）/ 新华社</b>．政策利率路径：2025 年内维持 0.5%→2025/12 升至 0.75%→2026/6/16 加息 25bp 至 1.0%（1995 年以来 31 年新高，新华社 2026-06-16）。</li>
+    <li id="ref8"><b>清华大学 ACCEPT 研究中心</b>．2026-2030 年中国经济增速预测约 5.8%。</li>
+    <li id="ref9"><b>巴克莱</b>．中国财政事实性紧缩判断。</li>
+    <li id="ref10"><b>中国财政部</b>．2026 年预算安排：赤字率 4%、赤字 5.89 万亿元、支出首破 30 万亿元、特别国债注资大行、专项债限额 4.4 万亿元。</li>
+    <li id="ref11"><b>中国财政部</b>．化债安排：2025 年 2 万亿元置换债发完；2026 续 2 万亿元置换+8000 亿元专项债。</li>
+    <li id="ref12"><b>中国人社部</b>．灵活就业人员约 2 亿。</li>
+    <li id="ref13"><b>日本 IPSS/厚生劳动省</b>．介护保险 2000 年施行；DPC 按住院日定额付费；2008 年后期高龄者医疗制度。</li>
+    <li id="ref14"><b>分析师 Boden</b>．《以日为鉴：衰退时代生存指南》．开明出版社 2025-8，ISBN 9787513196093，281 页。</li>
+    <li id="ref15"><b>中国国家统计局</b>．物价：2023 CPI +0.2%/PPI -3.0%；2026 CPI +1.0%、PPI 结束 41 个月负增长转正。</li>
+    <li id="ref16"><b>国家公务员局 / 人民网</b>．2026 年度国考：计划招录 3.81 万、过审 371.8 万、竞争比 98:1（2025-10 发布）；2027 年度公告截至 2026-10-10 尚未发布。</li>
+    <li id="ref17"><b>国家卫健委</b>．《2025 年我国卫生健康事业发展统计公报》（2026-08-28）：执业（助理）医师 530.6 万人、每千人口 3.78 人；人均预期寿命 79.25 岁。</li>
+    <li id="ref18"><b>中指研究院</b>．收购存量商品房专项债监测（机构监测口径，非官方汇总）：截至 2026-09-24 各地累计发行超 135 亿元、收购超 2.3 万套、建面超 190 万㎡。</li>
+    <li id="ref19"><b>中国经济网</b>．收购存量闲置土地专项债：截至 2026-09 公示总金额超 8100 亿、超 6000 宗、3.1 亿㎡（2026-03-14 首发口径：截至 2026-02 末 28 省市公示超 7700 亿、实际发行超 3350 亿约 43%）。</li>
+    <li id="ref20"><b>中新网 / 光明网 / 中公教育</b>．2026 国考税务系统招录 25004 人占 65.6%（因 1980 年代初入职人员集中退休）；机构与学者判断 2028 年后集中退休基本结束、自然减员可能下降约四成。</li>
+    <li id="ref21"><b>教育部</b>．《2025 年全国教育事业发展统计公报》（2026-07-06）：普通小学招生 1461.74 万（2024 年 1616.63 万）；在园幼儿 3225.52 万。</li>
+    <li id="ref22"><b>秦玉友等</b>．《"十五五"时期优化区域基础教育资源配置研究》：2026 秋季小学新生估算约 1234 万人（依据统计局出生人口与毛入学率推算，6 年前出生队列对应入学，2020 年出生约 1200 万，误差不足 3%）。估算值，教育部实际数将于 2027 年 6–7 月公报发布后更新。</li>
+    <li id="ref23"><b>北师大中国教育与社会发展研究院</b>．队列要素法（Leslie 矩阵）人口推算方法论背景。</li>
+    <li id="ref24"><b>郑秉文 / 中国社科院世界社保研究中心</b>．《中国养老金发展报告》系列：个人账户空账序列 2007 破 1 万亿 → 2015 记账 4.7 万亿/做实不足 3300 亿/空账约 4.4 万亿（空账率超九成）；财新 2025-03-27 访谈。</li>
+    <li id="ref25"><b>薛惠元、吴欣芸</b>．《职工养老保险个人账户超支、基金压力与财政负担：2024～2050》，《保险研究》2024 年第 5 期（CSSCI）：个人账户给付缺口存量 2024 约 16.8 万亿 → 2050 约 42.5 万亿元；年度超支 2050 达 1.72 万亿/年。</li>
+    <li id="ref26"><b>郑秉文团队</b>．《中国养老金精算报告 2025-2060》（2025-03）：加入延迟退休+全国统筹改革后，城镇职工养老基金当期收不抵支时点从 2028 推迟到 2036、累计结余耗尽从 2035 推迟到 2044。</li>
+    <li id="ref27"><b>人社部 / 国家统计局</b>．2025 年底口径：三项社保累计结余 10.2 万亿；企业养老累计结余 7.3 万亿；全国社保基金战略储备约 3.3 万亿；中央划转国有资本充实社保约 2.26 万亿；各类养老金资产合计约 24.75 万亿（占 GDP 约 14%，财新 2026-03）。</li>
+    <li id="ref28"><b>郑秉文</b>．财新《发展资产型养老金体系以应对老龄化》（2025-12-15）：明确"第一支柱部分积累制改革目标没有实现，在现收现付融资方式下隐性债务巨大"。</li>
+    <li id="ref29"><b>郑秉文 / 社科院大学</b>．博鳌亚洲论坛 2025-03-26：参保职工与退休人数比 2025 约 2.67:1，按 90% 缴费积极率测算 2060 将降至 1:1.12 倒挂。</li>
+  </ol>
+</section>
+
+
+</div>
+
+<div class="bottomnav">
+  <button class="btn" id="prevbtn">上一篇 · 医疗与养老</button>
+  <button class="btn" id="nextbtn">下一篇 · 第七篇（分人群总表）</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<script>
+(function(){
+  var t=localStorage.getItem('ryyj-theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('themebtn').onclick=function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var nx=cur==='light'?'dark':'light';
+    document.documentElement.setAttribute('data-theme',nx);
+    localStorage.setItem('ryyj-theme',nx);
+    renderCharts();
+  };
+})();
+(function(){
+  var b=document.getElementById('tocbtn'),nav=document.getElementById('toc'),mask=document.getElementById('toc-mask');
+  function open(o){nav.classList.toggle('open',o);mask.classList.toggle('show',o);}
+  b.onclick=function(){open(!nav.classList.contains('open'));};
+  mask.onclick=function(){open(false);};
+  // 点击目录章节后保持目录展开，方便连续查找；仅通过"目录"按钮或点击遮罩手动收起
+  nav.querySelectorAll('a').forEach(function(a){a.onclick=function(e){e.stopPropagation();};});
+})();
+window.addEventListener('scroll',function(){
+  var h=document.documentElement;
+  document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+},{passive:true});
+document.getElementById('prevbtn').onclick=function(){document.getElementById('part5').scrollIntoView({behavior:'smooth'});};
+document.getElementById('nextbtn').onclick=function(){document.getElementById('part7').scrollIntoView({behavior:'smooth'});};
+function toast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:var(--teal);color:#f5f1e8;padding:10px 18px;border-radius:8px;z-index:999;font-size:14px';
+  document.body.appendChild(t);setTimeout(function(){t.remove();},2200);
+}
+(function(){
+  var input=document.getElementById('q'),cnt=document.getElementById('hitcount');
+  var root=document.body;
+  var orig=root.innerHTML;
+  input.addEventListener('input',function(){
+    var v=input.value.trim();
+    root.innerHTML=orig;renderCharts();
+    if(!v){cnt.textContent='';return;}
+    var re=new RegExp('('+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+    var n=0;
+    root.querySelectorAll('p,li,h1,h2,h3,h4,td,th,.card,.scn,.verdict').forEach(function(el){
+      if(re.test(el.textContent)){el.innerHTML=el.innerHTML.replace(re,'<mark>$1</mark>');n++;}
+    });
+    cnt.textContent=n+' 处';
+    var first=root.querySelector('mark');if(first){first.scrollIntoView({block:'center'});}
+  });
+})();
+var charts=[];
+function colors(){
+  var d=document.documentElement.getAttribute('data-theme')==='dark';
+  return {ink:d?'#e8e4da':'#2a2723',muted:d?'#a9a294':'#837d72',grid:d?'#2e3338':'#e6dfd1'};
+}
+function renderCharts(){
+  charts.forEach(function(c){c.dispose();});charts=[];
+  var c=colors();
+  var el=document.getElementById('chart-debt');
+  if(el){
+    var ch=echarts.init(el);
+    ch.setOption({
+      textStyle:{fontFamily:'inherit',color:c.ink},
+      grid:{left:8,right:20,top:36,bottom:8,containLabel:true},
+      legend:{show:false},
+      tooltip:{},
+      xAxis:{type:'category',data:['日 IMF','日 日方','日 达利欧','中 全口径IMF','中 BIS','中 显性'],axisLabel:{color:c.ink,fontSize:11,interval:0,rotate:18}},
+      yAxis:{type:'value',name:'政府债务/GDP %',axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
+      series:[{type:'bar',data:[204.4,260,215,106.9,85,60],itemStyle:{color:function(p){return p.dataIndex<3?'#7a6f60':'#24565a';}},barWidth:26,label:{show:true,position:'top',color:c.muted,fontSize:11}}]
+    });
+    charts.push(ch);
+  }
+}
+window.addEventListener('resize',function(){charts.forEach(function(c){c.resize();});});
+renderCharts();
+</script>
+
+</body>
+</html>
