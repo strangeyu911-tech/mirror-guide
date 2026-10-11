@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>以日为鉴 · 衰退时代普通人生存指南</title>
-<meta name="description" content="以日本“失去三十年”为镜，综合 35 位中日与国际学者观点与 2026 年最新数据，直接给出结论、置信度与分人群行动：工作、学历、买房、资产、养老、出海。">
+<title>以日为鉴：衰退时代普通人生存指南（增补版）</title>
+<meta name="description" content="灵感源自 Boden《以日为鉴》的独立增补版：以日本“失去三十年”为镜，综合 35 位中日与国际学者观点与 2026 年最新数据，直接给出结论、置信度与分人群行动。Strange 整理增补。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="以日为鉴 · 衰退时代普通人生存指南">
-<meta property="og:description" content="综合 35 位学者观点与 2026 年最新数据，对“中国会不会重蹈日本覆辙”直接下判断，并给普通人可执行的生存策略：结论、置信度、动作，一条线讲清楚。">
+<meta property="og:title" content="以日为鉴：衰退时代普通人生存指南（增补版）">
+<meta property="og:description" content="综合 35 位学者观点与 2026 年最新数据，对“中国会不会重蹈日本覆辙”直接下判断，并给普通人可执行的生存策略：结论、置信度、动作，一条线讲清楚。Strange 整理增补。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='4' fill='%2324565a'/%3E%3Cpath d='M7 17V9m5 8V5m5 12v-6' stroke='%23f5f1e8' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -30,7 +30,9 @@ p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--teal);z-index:999;transition:width .1s}
 .topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:900}
 .topbar .in{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 18px}
-.topbar .brand{font-weight:700;letter-spacing:.5px;font-size:15px;white-space:nowrap}
+.topbar .brand{font-weight:700;letter-spacing:.5px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.topbar .brand .b-short{display:none}
+.topbar .brand .b-xs{display:none}
 .topbar .sp{flex:1}
 .btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 12px;border-radius:8px;font-size:13.5px;cursor:pointer;font-family:inherit}
 .btn:hover{border-color:var(--teal);color:var(--teal)}
@@ -102,6 +104,13 @@ sup.ref a:hover{text-decoration:underline}
   .persona{grid-template-columns:1fr;font-size:13px}
   .persona .hd{display:none}
   .searchbox input{width:80px}
+  .topbar .brand .b-full{display:none}
+  .topbar .brand .b-short{display:inline}
+}
+@media(max-width:360px){
+  .searchbox input{width:56px}
+  .topbar .brand .b-short{display:none}
+  .topbar .brand .b-xs{display:inline}
 }
 </style>
 </head>
@@ -111,7 +120,7 @@ sup.ref a:hover{text-decoration:underline}
 <div class="topbar">
   <div class="in">
     <button class="btn" id="tocbtn" aria-label="目录">目录</button>
-    <span class="brand">以日为鉴 · 衰退时代生存指南</span>
+    <span class="brand"><span class="b-full">以日为鉴 · 衰退时代生存指南（增补版）</span><span class="b-short">以日为鉴（增补版）</span><span class="b-xs">以日为鉴</span></span>
     <span class="sp"></span>
     <div class="searchbox">
       <input id="q" type="text" placeholder="搜索关键词">
@@ -169,8 +178,9 @@ sup.ref a:hover{text-decoration:underline}
 <div class="wrap">
 
 <div class="hero">
-  <div class="kicker">衰退时代普通人的生存手册 · 结论 · 置信度 · 行动</div>
+  <div class="kicker">以日为鉴：衰退时代普通人生存指南（增补版）</div>
   <h1>我们判断，你执行</h1>
+  <p style="font-size:14px;color:var(--teal);letter-spacing:.5px;margin:-2px 0 14px">Strange 整理增补　·　结论 · 置信度 · 行动　·　数据截至 2026 年 10 月</p>
   <p class="sub">这份指南不把学者们相互冲突的观点摊开让你自己选边。我们综合 35 位中日与国际学者的判断、对照 2026 年 10 月的最新数据，直接给出结论、置信度和该做的动作——你照着做即可，只需盯住我们给出的“证伪信号”：它一旦出现，就意味着当前判断被推翻、要立刻切换到防御策略。</p>
   <div class="legend">
     <span class="tag tag-fact">高可信 · 已查证</span>
@@ -187,6 +197,18 @@ sup.ref a:hover{text-decoration:underline}
   <h2>我们的立场与读法</h2>
 
   <p>2023 年以来，“中国会不会变成日本”成了普通人和媒体讨论经济时绕不开的问题。中文互联网上流传最广的一份回答，是财经分析师 Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 年 8 月）——作者长期在 B 站等平台以日本“失去的三十年”为镜，给普通人讲降杠杆、保现金流的生存策略，传播很广。<b>你现在打开的这个网页并不是那本书，也不是作者本人的站点</b>：它与该书同名，是因为我们以 Boden 的论述为讨论起点和“靶子”，再用 35 位中日与国际学者的研究、结合截至 2026 年 10 月的最新数据做独立检验——站得住的继承，推过头的修正。</p>
+
+  <div style="background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:18px 0;font-size:15px;line-height:1.9">
+    <p style="margin-top:0"><b>灵感来源，以及增补版多做了什么</b></p>
+    <p>本指南的灵感与书名，都来自 Boden《以日为鉴：衰退时代生存指南》。原书最有价值的地方，是把“资产负债表衰退”这类宏观概念翻译成普通人听得懂、能执行的动作——保住现金流、别在泡沫资产上加杠杆，这份贡献值得致敬。但原书只有作者一家之言，部分从日本到中国的外推跳过了前提检验（最典型的是：辜朝明本人强调资产负债表衰退必须靠政府财政对冲，而原书的处方把这个前提弱化了），数据也停留在 2024–2025 年。</p>
+    <p style="margin-bottom:6px">这个增补版在原书骨架上补了六样东西：</p>
+    <p style="margin:4px 0">① <b>35 位学者逐条对冲</b>：林毅夫、周其仁、陆铭、辜朝明、姚洋、蔡昉、达利欧、余永定、张明、罗思义、郑永年等中日与国际学者的观点作为论据内联呈现，每条结论标注来源，不再是一家之言；</p>
+    <p style="margin:4px 0">② <b>置信度与证伪信号</b>：每个关键结论打上“高可信 · 已查证／推演 · 中可信／推演 · 低可信”三级标签，并给出一旦出现就切换防御策略的证伪信号；</p>
+    <p style="margin:4px 0">③ <b>数据更新到 2026 年 10 月</b>：PPI 结束连续 41 个月负增长转正、4% 赤字率下的财政对冲、化债与商品房收储进展、2026 年度国考、最新出生人口与招生数据；凡估算值均注明方法来源；</p>
+    <p style="margin:4px 0">④ <b>补上原书缺失的模块</b>：养老金个人账户空账专题，医生、教师、公务员三大职业的真实供需数据，出海与新产业机会，以及应届生、中年高房贷、中年低负债、自由职业、临近退休五类人群的决策动作；</p>
+    <p style="margin:4px 0">⑤ <b>修正过度悲观的外推</b>：人口是逆风不是宿命；中国在发展阶段、土地制度、汇率环境、政策空间上与日本不同；新能源、AI、制造业出海等结构性赛道仍在扩张；</p>
+    <p style="margin:4px 0 0">⑥ <b>来源全部可核查</b>：文末 29 条参考资料与正文上标一一对应，整页开源（CC BY-NC-SA 4.0），欢迎逐条查证。</p>
+  </div>
 
   <p>Boden 的书把四条假设当成行动纲领：人口宿命、资产负债表恶化、收入预期下行、个体无力论，最后落到“个体该全面降杠杆、躺平避险”。<span class="tag tag-low">推演 · 低可信</span> 我们的评估是：这四条里，方向上有两条站得住、但被推到了过度悲观的极端。</p>
 
@@ -725,6 +747,7 @@ sup.ref a:hover{text-decoration:underline}
   <p><b>我们综合 35 位学者与 2026-10 最新数据后，给出的最核心判断是：中国不会简单复制日本"失去 30 年"的极端剧本，但会经历一个更长、更分化、更考验个体选择的调整期。你不需要预测明天——你只需要把底线守住、把可迁移技能练厚、把家庭与健康管好，然后在证伪信号出现时不慌、在机会出现时敢动。</b></p>
   <p class="lead" style="text-align:center;margin-top:24px">—— 指南到此，行动开始 ——</p>
   <p class="hint" style="text-align:center;margin-top:18px;line-height:2">
+    整理：Strange（灵感源自 Boden《以日为鉴：衰退时代生存指南》，本页为独立增补作品，非原书官方版本）。<br>
     数据时点：2026 年 10 月。标注“估算”的数据为学者或机构测算（正文已注明方法来源），官方数据发布后将更新替换。<br>
     本指南为公开信息整理与研究观点，不构成投资、职业、医疗或法律建议，请结合自身情况独立决策。<br>
     本页面开源（CC BY-NC-SA 4.0，转载请署名、非商业、相同方式共享）：<a href="https://github.com/strangeyu911-tech/mirror-guide">github.com/strangeyu911-tech/mirror-guide</a>
