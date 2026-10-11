@@ -43,7 +43,7 @@
 
 ## 技术形态
 
-纯静态**单文件 HTML**（内联 CSS/JS，无构建、无外部依赖、无追踪脚本），双击即可离线阅读，也可直接部署到 Cloudflare Pages / GitHub Pages / Vercel / Netlify 等任何静态托管。
+纯静态**单文件 HTML**（内联 CSS/JS，无构建、无追踪脚本），双击即可离线阅读；另附可选的 `og.png`（1200×630 社交分享封面，供微信/X 等转发时显示卡片缩略图，缺失也不影响页面本身）。可直接部署到 Cloudflare Pages / GitHub Pages / Vercel / Netlify 等任何静态托管。
 
 ## 本地使用
 

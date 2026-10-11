@@ -5,9 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>以日为鉴：衰退时代普通人生存指南（增补版）</title>
 <meta name="description" content="灵感源自 Boden《以日为鉴》的独立增补版：以日本“失去三十年”为镜，综合 35 位中日与国际学者观点与 2026 年最新数据，直接给出结论、置信度与分人群行动。Strange 整理增补。">
+<link rel="canonical" href="https://mirror.strangeyu.xyz/">
 <meta property="og:type" content="article">
+<meta property="og:site_name" content="以日为鉴（增补版）">
+<meta property="og:url" content="https://mirror.strangeyu.xyz/">
 <meta property="og:title" content="以日为鉴：衰退时代普通人生存指南（增补版）">
 <meta property="og:description" content="综合 35 位学者观点与 2026 年最新数据，对“中国会不会重蹈日本覆辙”直接下判断，并给普通人可执行的生存策略：结论、置信度、动作，一条线讲清楚。Strange 整理增补。">
+<meta property="og:image" content="https://mirror.strangeyu.xyz/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="以日为鉴：衰退时代普通人生存指南（增补版）——我们判断，你执行">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="以日为鉴：衰退时代普通人生存指南（增补版）">
+<meta name="twitter:description" content="综合 35 位学者观点与 2026 年最新数据，直接给结论、置信度与行动。Strange 整理增补。">
+<meta name="twitter:image" content="https://mirror.strangeyu.xyz/og.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='4' fill='%2324565a'/%3E%3Cpath d='M7 17V9m5 8V5m5 12v-6' stroke='%23f5f1e8' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -41,12 +54,37 @@ p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
 #hitcount{font-size:12px;color:var(--ink2);white-space:nowrap}
 #toc{position:fixed;top:46px;left:0;width:300px;max-width:82vw;height:calc(100vh - 46px);background:var(--card);border-right:1px solid var(--line);overflow:auto;padding:16px 14px;transform:translateX(-105%);transition:transform .25s;z-index:950}
 #toc.open{transform:translateX(0)}
-#toc h4{margin:6px 8px 10px;font-size:13px;color:var(--ink2);letter-spacing:1px}
+#toc h4{margin:6px 6px 10px;font-size:13px;color:var(--ink2);letter-spacing:1px;display:flex;align-items:center}
+#toc h4 .sp{flex:1}
+#toc h4 .toc-tool{border:0;background:transparent;color:var(--ink2);font-size:11.5px;cursor:pointer;padding:2px 4px;font-family:inherit;border-radius:4px}
+#toc h4 .toc-tool:hover{color:var(--teal);background:var(--paper2)}
 #toc a{display:block;padding:6px 10px;border-radius:6px;font-size:14px;color:var(--ink);line-height:1.5}
 #toc a:hover{background:var(--paper2);text-decoration:none}
-#toc a.lvl2{padding-left:24px;font-size:13.5px;color:var(--ink2)}
+#toc a.solo{font-weight:600}
+#toc a.active{background:var(--paper2);color:var(--teal);font-weight:600}
+.toc-group{margin:1px 0}
+.toc-head{display:flex;align-items:center;gap:2px;width:100%;border:0;background:transparent;padding:0;cursor:pointer;font-family:inherit;border-radius:6px}
+.toc-head:hover{background:var(--paper2)}
+.toc-caret{flex:0 0 auto;width:22px;height:30px;border:0;background:transparent;color:var(--ink2);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:transform .18s ease;font-size:10px}
+.toc-group.open > .toc-head .toc-caret{transform:rotate(90deg);color:var(--teal)}
+.toc-title-link{flex:1;min-width:0;display:block;padding:6px 8px 6px 2px;border-radius:6px;font-size:14px;font-weight:600;color:var(--ink);text-align:left;line-height:1.5}
+.toc-title-link:hover{text-decoration:none}
+.toc-subs{display:none;padding-bottom:2px}
+.toc-group.open > .toc-subs{display:block}
+#toc a.lvl2{padding:5px 10px 5px 30px;font-size:13px;color:var(--ink2)}
+#toc a.lvl2:hover{text-decoration:none}
+#toc a.lvl2.active{color:var(--teal);font-weight:600}
 #toc-mask{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:940}
 #toc-mask.show{opacity:1;pointer-events:auto}
+/* 桌面宽屏：目录常驻左侧，正文让出空间 */
+@media(min-width:1024px){
+  :root{--toc-w:290px}
+  #toc{transform:none;width:var(--toc-w);max-width:none;padding:18px 12px}
+  #toc-mask{display:none!important}
+  #tocbtn{display:none}
+  .wrap{margin-left:calc(var(--toc-w) + max(0px,(100% - var(--toc-w) - 880px)/2))}
+  .bottomnav{margin-left:var(--toc-w)}
+}
 .hero{padding:64px 0 36px;border-bottom:1px solid var(--line)}
 .hero .kicker{font-size:13px;letter-spacing:2px;color:var(--teal);margin-bottom:14px}
 .hero h1{font-size:34px;line-height:1.3;margin:0 0 14px;font-weight:800}
@@ -131,47 +169,96 @@ sup.ref a:hover{text-decoration:underline}
 </div>
 
 <nav id="toc" aria-label="目录">
-  <h4>章节</h4>
-  <a href="#intro">引子 · 我们的立场与读法</a>
-  <a href="#part1" class="lvl2">第一篇 · 我们对时代的判断</a>
-  <a href="#s11" class="lvl2">1.1 中日四点相同</a>
-  <a href="#s12" class="lvl2">1.2 中日六点不同</a>
-  <a href="#s13" class="lvl2">1.3 宏观数据对照表</a>
-  <a href="#s14" class="lvl2">1.4 高风险点与不重蹈的理由</a>
-  <a href="#s15" class="lvl2">1.5 三个长周期叠加的位置</a>
-  <a href="#part2" class="lvl2">第二篇 · 守住底线</a>
-  <a href="#s21" class="lvl2">2.1 底线思维</a>
-  <a href="#s22" class="lvl2">2.2 现金·负债·资产清单</a>
-  <a href="#s23" class="lvl2">2.3 我们的宏观判断：情形A为主</a>
-  <a href="#s24" class="lvl2">2.4 动作清单</a>
-  <a href="#part3" class="lvl2">第三篇 · 工作与职业</a>
-  <a href="#s31" class="lvl2">3.1 总量放缓、结构错配</a>
-  <a href="#s32" class="lvl2">3.2 冰河期：哪些重演、哪些不会</a>
-  <a href="#s33" class="lvl2">3.3 学历：值不值读研/读博</a>
-  <a href="#s34" class="lvl2">3.4 专业与赛道：我们的建议</a>
-  <a href="#s35" class="lvl2">3.5 给普通人的动作清单</a>
-  <a href="#s36" class="lvl2">3.6 中年返贫的日本镜鉴</a>
-  <a href="#part4" class="lvl2">第四篇 · 资产与房子</a>
-  <a href="#s41" class="lvl2">4.1 房子：买还是租</a>
-  <a href="#s42" class="lvl2">4.2 家庭资产怎么配</a>
-  <a href="#s43" class="lvl2">4.3 分人群配置框架</a>
-  <a href="#s44" class="lvl2">4.4 婚姻：长期合伙</a>
-  <a href="#part5" class="lvl2">第五篇 · 医疗与养老</a>
-  <a href="#s51" class="lvl2">5.1 趋势：老龄化是最确定的支出</a>
-  <a href="#s52" class="lvl2">5.2 体系会怎么演化</a>
-  <a href="#s53" class="lvl2">5.3 个人账户空账</a>
-  <a href="#s54" class="lvl2">5.4 普通人怎么提前安排</a>
-  <a href="#part6" class="lvl2">第六篇 · 机会在哪：出海与新产业</a>
-  <a href="#s61" class="lvl2">6.1 国别坐标</a>
-  <a href="#s62" class="lvl2">6.2 日本全民出海史</a>
-  <a href="#s63" class="lvl2">6.3 中国出海机遇期</a>
-  <a href="#s64" class="lvl2">6.4 第三次时代红利</a>
-  <a href="#s65" class="lvl2">6.5 文化出海三阶段</a>
-  <a href="#part7" class="lvl2">第七篇 · 分人群总表与长期主义</a>
-  <a href="#s71" class="lvl2">7.1 五类人群动作总表</a>
-  <a href="#s72" class="lvl2">7.2 长期主义心法</a>
-  <a href="#epilogue" class="lvl2">结语 · 在存量时代做跨周期玩家</a>
-  <a href="#refs">附录 · 参考资料</a>
+  <h4>章节<span class="sp"></span><button class="toc-tool" id="toc-expand" type="button">全展开</button><button class="toc-tool" id="toc-collapse" type="button">全收起</button></h4>
+  <a href="#intro" class="solo">引子 · 我们的立场与读法</a>
+  <div class="toc-group" data-part="part1">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第一篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part1">第一篇 · 我们对时代的判断</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s11" class="lvl2">1.1 中日四点相同</a>
+      <a href="#s12" class="lvl2">1.2 中日六点不同</a>
+      <a href="#s13" class="lvl2">1.3 宏观数据对照表</a>
+      <a href="#s14" class="lvl2">1.4 高风险点与不重蹈的理由</a>
+      <a href="#s15" class="lvl2">1.5 三个长周期叠加的位置</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part2">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第二篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part2">第二篇 · 守住底线</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s21" class="lvl2">2.1 底线思维</a>
+      <a href="#s22" class="lvl2">2.2 现金·负债·资产清单</a>
+      <a href="#s23" class="lvl2">2.3 我们的宏观判断：情形A为主</a>
+      <a href="#s24" class="lvl2">2.4 动作清单</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part3">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第三篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part3">第三篇 · 工作与职业</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s31" class="lvl2">3.1 总量放缓、结构错配</a>
+      <a href="#s32" class="lvl2">3.2 冰河期：哪些重演、哪些不会</a>
+      <a href="#s33" class="lvl2">3.3 学历：值不值读研/读博</a>
+      <a href="#s34" class="lvl2">3.4 专业与赛道：我们的建议</a>
+      <a href="#s35" class="lvl2">3.5 给普通人的动作清单</a>
+      <a href="#s36" class="lvl2">3.6 中年返贫的日本镜鉴</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part4">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第四篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part4">第四篇 · 资产与房子</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s41" class="lvl2">4.1 房子：买还是租</a>
+      <a href="#s42" class="lvl2">4.2 家庭资产怎么配</a>
+      <a href="#s43" class="lvl2">4.3 分人群配置框架</a>
+      <a href="#s44" class="lvl2">4.4 婚姻：长期合伙</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part5">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第五篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part5">第五篇 · 医疗与养老</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s51" class="lvl2">5.1 趋势：老龄化是最确定的支出</a>
+      <a href="#s52" class="lvl2">5.2 体系会怎么演化</a>
+      <a href="#s53" class="lvl2">5.3 个人账户空账</a>
+      <a href="#s54" class="lvl2">5.4 普通人怎么提前安排</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part6">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第六篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part6">第六篇 · 机会在哪：出海与新产业</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s61" class="lvl2">6.1 国别坐标</a>
+      <a href="#s62" class="lvl2">6.2 日本全民出海史</a>
+      <a href="#s63" class="lvl2">6.3 中国出海机遇期</a>
+      <a href="#s64" class="lvl2">6.4 第三次时代红利</a>
+      <a href="#s65" class="lvl2">6.5 文化出海三阶段</a>
+    </div>
+  </div>
+  <div class="toc-group" data-part="part7">
+    <div class="toc-head">
+      <button class="toc-caret" type="button" aria-label="展开第七篇" aria-expanded="false">▶</button>
+      <a class="toc-title-link" href="#part7">第七篇 · 分人群总表与长期主义</a>
+    </div>
+    <div class="toc-subs">
+      <a href="#s71" class="lvl2">7.1 五类人群动作总表</a>
+      <a href="#s72" class="lvl2">7.2 长期主义心法</a>
+    </div>
+  </div>
+  <a href="#epilogue" class="solo">结语 · 在存量时代做跨周期玩家</a>
+  <a href="#refs" class="solo">附录 · 参考资料</a>
 </nav>
 <div id="toc-mask"></div>
 
@@ -820,11 +907,52 @@ sup.ref a:hover{text-decoration:underline}
 })();
 (function(){
   var b=document.getElementById('tocbtn'),nav=document.getElementById('toc'),mask=document.getElementById('toc-mask');
-  function open(o){nav.classList.toggle('open',o);mask.classList.toggle('show',o);}
-  b.onclick=function(){open(!nav.classList.contains('open'));};
-  mask.onclick=function(){open(false);};
-  // 点击目录章节后保持目录展开，方便连续查找；仅通过"目录"按钮或点击遮罩手动收起
-  nav.querySelectorAll('a').forEach(function(a){a.onclick=function(e){e.stopPropagation();};});
+  var groups=Array.prototype.slice.call(nav.querySelectorAll('.toc-group'));
+  function drawer(o){nav.classList.toggle('open',o);mask.classList.toggle('show',o);}
+  b.onclick=function(){drawer(!nav.classList.contains('open'));};
+  mask.onclick=function(){drawer(false);};
+  function setGroup(g,open){
+    g.classList.toggle('open',open);
+    var c=g.querySelector('.toc-caret'),t=g.querySelector('.toc-title-link');
+    if(c){c.setAttribute('aria-expanded',open?'true':'false');c.setAttribute('aria-label',(open?'收起':'展开')+(t?t.textContent:''));}
+  }
+  groups.forEach(function(g){
+    var caret=g.querySelector('.toc-caret'),title=g.querySelector('.toc-title-link');
+    caret.onclick=function(e){e.preventDefault();e.stopPropagation();setGroup(g,!g.classList.contains('open'));};
+    title.onclick=function(){setGroup(g,true);}; // 点篇名：展开并随锚点跳转
+  });
+  document.getElementById('toc-expand').onclick=function(){groups.forEach(function(g){setGroup(g,true);});};
+  document.getElementById('toc-collapse').onclick=function(){groups.forEach(function(g){setGroup(g,false);});clearActive();};
+  // 滚动定位：高亮当前小节，自动展开所在篇
+  var subLinks=Array.prototype.slice.call(nav.querySelectorAll('a.lvl2'));
+  var titleLinks=Array.prototype.slice.call(nav.querySelectorAll('.toc-title-link'));
+  var soloLinks=Array.prototype.slice.call(nav.querySelectorAll('a.solo'));
+  function clearActive(){titleLinks.concat(subLinks).concat(soloLinks).forEach(function(a){a.classList.remove('active');});}
+  function setActive(a){clearActive();if(a)a.classList.add('active');}
+  function targs(links){return links.map(function(a){return {a:a,el:document.querySelector(a.getAttribute('href'))};}).filter(function(t){return t.el;});}
+  var subTargets=targs(subLinks);
+  var partTargets=groups.map(function(g){return {g:g,a:g.querySelector('.toc-title-link'),el:document.getElementById(g.dataset.part)};}).filter(function(t){return t.el;});
+  var soloTargets=targs(soloLinks);
+  var ticking=false;
+  function spy(){
+    ticking=false;
+    var threshold=120,cur=null;
+    for(var i=0;i<subTargets.length;i++){if(subTargets[i].el.getBoundingClientRect().top<=threshold)cur=subTargets[i];}
+    if(cur){
+      var grp=cur.a.closest('.toc-group');
+      if(!grp.classList.contains('open'))setGroup(grp,true);
+      setActive(cur.a);
+    }else{
+      var all=partTargets.concat(soloTargets),cur2=null;
+      for(var j=0;j<all.length;j++){if(all[j].el.getBoundingClientRect().top<=threshold)cur2=all[j];}
+      if(cur2){if(cur2.g&&!cur2.g.classList.contains('open'))setGroup(cur2.g,true);setActive(cur2.a);}
+      else clearActive();
+    }
+  }
+  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(spy);}},{passive:true});
+  // 初始：按 hash 展开对应篇，再定位一次
+  if(location.hash){var hl=nav.querySelector('a[href="'+location.hash+'"]');if(hl){var hg=hl.closest('.toc-group');if(hg)setGroup(hg,true);}}
+  spy();
 })();
 window.addEventListener('scroll',function(){
   var h=document.documentElement;
@@ -840,19 +968,25 @@ function toast(msg){
 }
 (function(){
   var input=document.getElementById('q'),cnt=document.getElementById('hitcount');
-  var root=document.body;
-  var orig=root.innerHTML;
+  function stripMarks(){
+    document.querySelectorAll('mark').forEach(function(m){
+      var p=m.parentNode;
+      p.replaceChild(document.createTextNode(m.textContent),m);
+      p.normalize();
+    });
+  }
   input.addEventListener('input',function(){
+    stripMarks(); // 先撤掉上一次高亮，避免重建整个页面（否则目录等交互监听会失效）
     var v=input.value.trim();
-    root.innerHTML=orig;renderCharts();
-    if(!v){cnt.textContent='';return;}
+    cnt.textContent='';
+    if(!v)return;
     var re=new RegExp('('+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
     var n=0;
-    root.querySelectorAll('p,li,h1,h2,h3,h4,td,th,.card,.scn,.verdict').forEach(function(el){
+    document.body.querySelectorAll('p,li,h1,h2,h3,h4,td,th,.card,.scn,.verdict').forEach(function(el){
       if(re.test(el.textContent)){el.innerHTML=el.innerHTML.replace(re,'<mark>$1</mark>');n++;}
     });
     cnt.textContent=n+' 处';
-    var first=root.querySelector('mark');if(first){first.scrollIntoView({block:'center'});}
+    var first=document.body.querySelector('mark');if(first){first.scrollIntoView({block:'center'});}
   });
 })();
 var charts=[];
