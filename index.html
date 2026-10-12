@@ -64,6 +64,25 @@ p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
 .switch .knob{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;transition:left .18s ease;color:var(--ink2)}
 html[data-theme="dark"] .switch{background:var(--teal);border-color:var(--teal)}
 html[data-theme="dark"] .switch .knob{left:26px}
+/* 分享菜单 */
+.share-wrap{flex:0 0 auto;position:relative}
+.share-menu{position:absolute;top:calc(100% + 8px);right:0;width:248px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:7px;z-index:960;display:none;max-height:72vh;overflow:auto}
+.share-menu.open{display:block}
+.sm-item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--ink);padding:8px 9px;border-radius:8px;cursor:pointer;font-family:inherit;text-align:left}
+.sm-item:hover{background:var(--paper2)}
+.sm-ic{flex:0 0 auto;width:24px;height:24px;border-radius:6px;background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal)}
+.sm-tx{flex:1;font-size:14px;line-height:1.35}
+.sm-tx small{display:block;color:var(--ink2);font-size:11.5px;margin-top:1px}
+.sm-sep{height:1px;background:var(--line);margin:6px 9px}
+.qr-box{padding:8px 9px 4px;text-align:center}
+#qrcode{display:flex;justify-content:center}
+#qrcode img,#qrcode canvas{border-radius:6px;background:#fff;padding:4px}
+.qr-hint{font-size:11.5px;color:var(--ink2);line-height:1.5;margin:8px 2px 4px}
+/* 移动端展开式搜索条 */
+.m-search{display:none}
+.m-search.open{display:block;position:sticky;top:var(--bar-h);z-index:890;background:var(--card);border-bottom:1px solid var(--line);padding:8px 12px}
+.m-search .searchbox{flex:1 1 auto;width:auto;height:38px;padding:5px 11px}
+.m-search input{width:100%;min-width:0}
 #toc{position:fixed;top:var(--bar-h);left:0;width:300px;max-width:82vw;height:calc(100vh - var(--bar-h));background:var(--card);border-right:1px solid var(--line);overflow:auto;padding:16px 14px;transform:translateX(-105%);transition:transform .25s;z-index:950}
 #toc.open{transform:translateX(0)}
 #toc h4{margin:6px 6px 10px;font-size:13px;color:var(--ink2);letter-spacing:1px;display:flex;align-items:center}
@@ -170,6 +189,8 @@ sup.ref a:hover{text-decoration:underline}
 @media(max-width:480px){
   .brand .b-short{display:none}
   .brand .b-xs{display:inline}
+  .tb-col .searchbox{flex:0 0 auto;width:38px;height:38px;padding:0;justify-content:center;gap:0}
+  .tb-col .searchbox input,.tb-col .searchbox #hitcount{display:none}
 }
 @media(max-width:400px){
   .iconbtn.gh{display:none}
@@ -198,6 +219,28 @@ sup.ref a:hover{text-decoration:underline}
           <span id="hitcount"></span>
           <span class="kbd">/</span>
         </div>
+        <div class="share-wrap">
+          <button class="iconbtn" id="sharebtn" type="button" aria-label="分享本页" aria-haspopup="menu" aria-expanded="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          </button>
+          <div class="share-menu" id="sharemenu" role="menu" aria-label="分享到">
+            <button class="sm-item" type="button" role="menuitem" data-ch="native"><span class="sm-ic">&#8682;</span><span class="sm-tx">系统分享（手机含微信/QQ）</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="copy"><span class="sm-ic">&#10697;</span><span class="sm-tx">复制链接<small>粘贴到微信/QQ 即显示卡片</small></span></button>
+            <div class="sm-sep"></div>
+            <button class="sm-item" type="button" role="menuitem" data-ch="weibo"><span class="sm-ic">微</span><span class="sm-tx">新浪微博</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="qq"><span class="sm-ic">Q</span><span class="sm-tx">QQ 好友 / Qzone</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="facebook"><span class="sm-ic">f</span><span class="sm-tx">Facebook</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="twitter"><span class="sm-ic">X</span><span class="sm-tx">X (Twitter)</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="telegram"><span class="sm-ic">T</span><span class="sm-tx">Telegram</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="reddit"><span class="sm-ic">R</span><span class="sm-tx">Reddit</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="linkedin"><span class="sm-ic">in</span><span class="sm-tx">LinkedIn</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="whatsapp"><span class="sm-ic">W</span><span class="sm-tx">WhatsApp</span></button>
+            <button class="sm-item" type="button" role="menuitem" data-ch="line"><span class="sm-ic">L</span><span class="sm-tx">LINE</span></button>
+            <div class="sm-sep"></div>
+            <button class="sm-item" type="button" role="menuitem" data-ch="qrcode"><span class="sm-ic">&#128247;</span><span class="sm-tx">微信：生成二维码<small>微信扫码打开后再分享</small></span></button>
+            <div class="qr-box" id="qrbox" hidden><div id="qrcode"></div><p class="qr-hint">用微信「扫一扫」打开本页，再点右上角 ··· 分享给好友/朋友圈</p></div>
+          </div>
+        </div>
         <a class="iconbtn gh" href="https://github.com/strangeyu911-tech/mirror-guide" target="_blank" rel="noopener" aria-label="GitHub 仓库">
           <svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.78-.94-1.33-1.13-.27-.16-.65-.52-.01-.53.6-.01 1.03.56 1.18.79.69 1.17 1.77.83 2.21.64.07-.5.27-.83.49-1.02-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.28.24.53.71.53 1.44 0 1.04-.01 1.87-.01 2.13 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
         </a>
@@ -206,6 +249,8 @@ sup.ref a:hover{text-decoration:underline}
     </div>
   </div>
 </div>
+
+<div class="m-search" id="msearch"><div class="m-search-in" id="msearchin"></div></div>
 
 <nav id="toc" aria-label="目录">
   <h4>章节<span class="sp"></span><button class="toc-tool" id="toc-expand" type="button">全展开</button><button class="toc-tool" id="toc-collapse" type="button">全收起</button></h4>
@@ -353,6 +398,8 @@ sup.ref a:hover{text-decoration:underline}
   <div class="hook">时代判断已经下好了——下一篇，看我们凭什么这么判断。</div>
 </section>
 
+</div>
+
 <div class="wrap">
 
 <section id="part1">
@@ -417,6 +464,8 @@ sup.ref a:hover{text-decoration:underline}
 
   <div class="hook">时代判断已经下完：像的是症状，不像的是结构，危险点在地产与青年就业，缓冲在财政对冲。接下来，不管这条路往哪走，先把底线守住。</div>
 </section>
+
+</div>
 
 <div class="wrap">
 
@@ -530,6 +579,8 @@ sup.ref a:hover{text-decoration:underline}
   <div class="hook">底线守住了，下一步是别在找工作、选专业、买房理财上做错选择——那是第三篇的事。</div>
 </section>
 
+</div>
+
 <div class="wrap">
 
 <section id="part3">
@@ -628,6 +679,8 @@ sup.ref a:hover{text-decoration:underline}
   <div class="hook">工作安身之后，下一步是把钱和房子放对位置——那是第四篇「资产与房子」的事。</div>
 </section>
 
+</div>
+
 <div class="wrap">
 
 <section id="part4">
@@ -704,6 +757,8 @@ sup.ref a:hover{text-decoration:underline}
 
   <div class="hook">钱和房子放对位置之后，下一步是在老龄化里安排好医疗与养老——那是第五篇「医疗与养老」的事。</div>
 </section>
+
+</div>
 
 <div class="wrap">
 
@@ -843,6 +898,8 @@ sup.ref a:hover{text-decoration:underline}
   <div class="hook">机会在哪看清之后，最后一篇——把所有判断汇总成一张"分人群行动总表"，并说清楚心态这件事。</div>
 </section>
 
+</div>
+
 <div class="wrap">
 
 <section id="part7">
@@ -870,6 +927,8 @@ sup.ref a:hover{text-decoration:underline}
   <div class="hook">全书七篇到此结束。</div>
 </section>
 
+</div>
+
 <div class="wrap">
 
 <section id="epilogue">
@@ -886,8 +945,6 @@ sup.ref a:hover{text-decoration:underline}
     本页面开源（CC BY-NC-SA 4.0，转载请署名、非商业、相同方式共享）：<a href="https://github.com/strangeyu911-tech/mirror-guide">github.com/strangeyu911-tech/mirror-guide</a>
   </p>
 </section>
-
-</div>
 
 </div>
 
@@ -938,6 +995,7 @@ sup.ref a:hover{text-decoration:underline}
   <button class="btn" id="nextbtn">下一篇 · 第七篇（分人群总表）</button>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 <script>
 (function(){
@@ -1069,6 +1127,77 @@ function renderCharts(){
 }
 window.addEventListener('resize',function(){charts.forEach(function(c){c.resize();});});
 renderCharts();
+
+/* ===== 分享菜单 ===== */
+(function(){
+  var shareBtn=document.getElementById('sharebtn'),menu=document.getElementById('sharemenu');
+  var qrBox=document.getElementById('qrbox'),qrEl=document.getElementById('qrcode');
+  function shareUrl(){return location.origin+location.pathname;}
+  var TITLE='以日为鉴：衰退时代普通人生存指南（增补版）';
+  var DESC='我们判断，你执行——35位中日学者逐条对冲的衰退时代生存指南，结论·置信度·行动，数据截至2026年10月。';
+  var OG=shareUrl()+'og.png';
+  function enc(s){return encodeURIComponent(s);}
+  function openWin(u){window.open(u,'_share','width=640,height=580');}
+  var builders={
+    weibo:function(){return 'https://service.weibo.com/share/share.php?url='+enc(shareUrl())+'&title='+enc(TITLE+' '+DESC)+'&pic='+enc(OG);},
+    qq:function(){return 'https://connect.qq.com/widget/shareqq/index.html?url='+enc(shareUrl())+'&title='+enc(TITLE)+'&desc='+enc(DESC)+'&pics='+enc(OG);},
+    facebook:function(){return 'https://www.facebook.com/sharer/sharer.php?u='+enc(shareUrl());},
+    twitter:function(){return 'https://x.com/intent/tweet?url='+enc(shareUrl())+'&text='+enc(TITLE+' '+DESC);},
+    telegram:function(){return 'https://t.me/share/url?url='+enc(shareUrl())+'&text='+enc(TITLE+' '+DESC);},
+    reddit:function(){return 'https://www.reddit.com/submit?url='+enc(shareUrl())+'&title='+enc(TITLE);},
+    linkedin:function(){return 'https://www.linkedin.com/sharing/share-offsite/?url='+enc(shareUrl());},
+    whatsapp:function(){return 'https://api.whatsapp.com/send?text='+enc(TITLE+' '+shareUrl());},
+    line:function(){return 'https://social-plugins.line.me/lineit/share?url='+enc(shareUrl());}
+  };
+  function fallbackCopy(u,ok){var ta=document.createElement('textarea');ta.value=u;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){toast('复制失败，请手动复制地址栏链接');}ta.remove();}
+  function setMenu(o){menu.classList.toggle('open',o);shareBtn.setAttribute('aria-expanded',o?'true':'false');if(!o)qrBox.hidden=true;}
+  shareBtn.onclick=function(e){e.stopPropagation();setMenu(!menu.classList.contains('open'));};
+  document.addEventListener('click',function(e){if(menu.classList.contains('open')&&!menu.contains(e.target)&&e.target!==shareBtn)setMenu(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')setMenu(false);});
+  menu.querySelectorAll('.sm-item').forEach(function(it){
+    it.addEventListener('click',function(){
+      var ch=it.dataset.ch;
+      if(ch==='native'){
+        if(navigator.share){navigator.share({title:TITLE,text:DESC,url:shareUrl()}).catch(function(){});}
+        else{toast('请用「复制链接」，粘贴到微信/QQ 即显示卡片');}
+      }else if(ch==='copy'){
+        var u=shareUrl();
+        function ok(){toast('链接已复制，粘贴到微信/QQ 即显示卡片');}
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(ok,function(){fallbackCopy(u,ok);});}
+        else fallbackCopy(u,ok);
+      }else if(ch==='qrcode'){
+        qrBox.hidden=false;
+        if(qrEl&&!qrEl.hasChildNodes()){
+          if(window.QRCode){new QRCode(qrEl,{text:shareUrl(),width:150,height:150,colorDark:'#24565a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}
+          else{qrEl.textContent='二维码库未加载，请改用复制链接';}
+        }
+      }else if(builders[ch]){openWin(builders[ch]());}
+    });
+  });
+})();
+
+/* ===== 移动端：搜索框收起为放大镜，点开下拉整行 ===== */
+(function(){
+  var mSearch=document.getElementById('msearch'),mIn=document.getElementById('msearchin');
+  var tbCol=document.querySelector('.tb-col'),shareWrap=document.querySelector('.share-wrap');
+  var searchbox=tbCol.querySelector('.searchbox'),input=document.getElementById('q');
+  var mq=window.matchMedia('(max-width:480px)');
+  function closeSearch(){
+    if(searchbox.parentNode!==mIn)return;
+    tbCol.insertBefore(searchbox,shareWrap);
+    mSearch.classList.remove('open');
+  }
+  function openSearch(){
+    if(!mq.matches){input.focus();return;}
+    mIn.appendChild(searchbox);
+    mSearch.classList.add('open');
+    input.focus();
+  }
+  searchbox.addEventListener('click',function(){if(mq.matches&&searchbox.parentNode!==mIn)openSearch();});
+  input.addEventListener('keydown',function(e){if(e.key==='Escape')closeSearch();});
+  input.addEventListener('blur',function(){setTimeout(function(){if(searchbox.parentNode===mIn&&!mIn.contains(document.activeElement))closeSearch();},120);});
+  mq.addEventListener('change',function(ev){if(!ev.matches)closeSearch();});
+})();
 </script>
 
 </body>
