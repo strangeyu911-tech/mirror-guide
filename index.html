@@ -198,6 +198,22 @@ sup.ref a:hover{text-decoration:underline}
 @media(max-width:360px){
   .searchbox input{width:56px}
 }
+/* 名词解释：正文点线词 + 弹层 + 折叠表 */
+abbr.term{text-decoration:none;border-bottom:1px dotted var(--ink2);cursor:help;color:inherit}
+abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
+#pop{position:absolute;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.16);padding:10px 12px;font-size:13px;line-height:1.65;color:var(--ink2);max-width:360px}
+#pop b{color:var(--teal);margin-right:6px;font-weight:600}
+#pop[hidden]{display:none}
+.gloss{margin:18px 0;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:2px 16px}
+.gloss summary{cursor:pointer;list-style:none;padding:13px 0;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.gloss summary::-webkit-details-marker{display:none}
+.gloss summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--teal);border-bottom:1.5px solid var(--teal);transform:rotate(-45deg);transition:transform .2s}
+.gloss[open] summary::before{transform:rotate(45deg)}
+.gloss .gd{font-size:13px;color:var(--ink2);margin:2px 0 10px;line-height:1.7}
+.gloss dl{margin:0;padding-bottom:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 18px;font-size:13.5px;line-height:1.7}
+.gloss dt{color:var(--teal);font-weight:600;white-space:nowrap}
+.gloss dd{margin:0;color:var(--ink2)}
+@media(max-width:640px){.gloss dl{grid-template-columns:1fr;gap:2px}.gloss dd{margin-bottom:8px}}
 </style>
 </head>
 <body>
@@ -367,6 +383,14 @@ sup.ref a:hover{text-decoration:underline}
     <div style="margin-top:2px">AI 助手：想逐条问“衰退期这笔账该怎么算”（提前还贷、考研考公、买房时点、社保养老金……），可装配套的 <a href="https://github.com/strangeyu911-tech/mirror-guide/blob/main/skills/recession-life-guide/README.md" target="_blank" rel="noopener" style="color:var(--teal);font-weight:600">衰退时代版人生决策 skill</a>（让 Claude Code 或 Codex 先判情形 A/B、查 33 条补丁再回答，附安装方法；跨周期通用问题仍可用官方 life-decision-guide）。</div>
   </div>
 </div>
+</div>
+
+<div class="wrap">
+<details class="gloss" id="gloss">
+  <summary>看不懂的缩写和名词</summary>
+  <p class="gd">正文里带点线的词，点一下、或把鼠标放上去就有解释。全表如下。</p>
+  <dl></dl>
+</details>
 </div>
 
 <div class="wrap">
@@ -1211,6 +1235,114 @@ renderCharts();
   input.addEventListener('keydown',function(e){if(e.key==='Escape')closeSearch();});
   input.addEventListener('blur',function(){setTimeout(function(){if(searchbox.parentNode===mIn&&!mIn.contains(document.activeElement))closeSearch();},120);});
   mq.addEventListener('change',function(ev){if(!ev.matches)closeSearch();});
+})();
+</script>
+
+<script type="text/plain" id="gloss-data">
+| PPI | 工业生产者出厂价格指数：衡量工厂卖出产品的均价涨跌；PPI 连续负增长，说明工厂在降价、需求偏弱。 |
+| CPI | 居民消费价格指数：衡量日常一篮子商品和服务的物价涨跌，也就是常说的“物价涨没涨”。 |
+| 通缩 | 物价持续普遍下跌。东西越便宜，企业越难赚钱、越降薪裁员，大家越不敢花钱，形成恶性循环；与通胀相反。 |
+| GDP 平减指数 | 把名义 GDP 里的物价变动剔除后算出真实增长的折算指标；它长期接近零，说明去掉价格因素后经济几乎没增长。 |
+| 赤字率 | 政府财政支出超过税收的部分占 GDP 的比重；赤字率抬高，意味着政府在加大花钱托底经济。 |
+| 特别国债 | 中央政府为特定目的（化债、托底、扩需求）在一般预算外额外发行的国债，被看作政府强力扩张的信号。 |
+| 财政对冲 | 企业和居民都在收缩、不敢花钱时，政府反过来加大支出、扩大资产负债表，把总需求顶起来，避免经济滑入通缩。 |
+| 资产负债表衰退 | 辜朝明提出的概念：资产价格下跌后，大家资产缩水、债务却没变，于是集体只顾还债、不再借钱投资，降息也没人借，只能靠政府花钱对冲。 |
+| 化债、置换债 | 把地方政府利息高、期限短的旧债，换成利息低、期限长的新债，减轻每年还款压力，属于防风险操作。 |
+| 存量房收储 | 政府或国企出面收购已建成但卖不掉的商品房，帮房企去库存、托住房价。 |
+| 国债逆回购 | 把钱借给市场、以国债作抵押的极短期理财，几乎不会亏，收益随市场资金松紧波动。 |
+| 重定价日 | 房贷利率随 LPR 调整的固定日期；到了这一天最新 LPR 才换成你的房贷利率，所以降息不是当月就生效。 |
+| 月供/收入比 | 每月房贷还款占月收入的比例，用来衡量房贷压力；文中参考 35–40% 是经验区间，不是官方红线。 |
+| 流动性 | 能随时拿出来花、且不亏本变现的钱。应急金要放在高流动性的地方，就是随取随用、提前取也不亏本金利息。 |
+| 杠杆 | 借钱来放大投资或消费，贷款买房就是加杠杆；“降杠杆”就是少借多还。杠杆越高，利率上涨或收入下降时压力越大。 |
+| 现收现付 | 养老金的一种运行方式：现在上班的人交的钱，直接发给现在退休的人。年轻人多老人少时转得动，老龄化后就吃紧。 |
+| 空账 | 职工养老金的个人账户里记着你名下有多少钱，但这笔钱往往已被拿去给现在的退休老人发了——账上有数、实际没钱。 |
+| 替代率 | 退休后领到的养老金相当于退休前工资的百分比；比如 45% 就是退休金约为退休前工资的四成半，这个数越低落差越大。 |
+| 第三支柱、个人养老金 | 国家把养老分三层：第一支柱是社保基本养老金，第二支柱是单位企业/职业年金，第三支柱是自己存的个人养老金账户（可享税收优惠）。 |
+| NDC | 名义账户制的英文缩写。改革思路是不再真的把钱存进个人账户、而是记账并用精算参数自求平衡；实际运行中并没真正做到自平衡。 |
+| 计发月数 | 计算个人账户养老金时，按退休年龄定的一个“预计发放月数”除数。定得越短每月领得越多、池子越快用完，所以要随寿命延长而上调。 |
+| 抚养比 | 平均一个退休者对应多少个正在缴费上班的人。这个比值越低（缴费的人相对领钱的人越少），养老金池越吃紧。 |
+| 自然减员 | 岗位不是被裁撤，而是有人退休、离职后不再补人，慢慢消失。 |
+| 退三进一 | 编制缩减的做法之一：退休三个只补进一个，让编制自然收窄。 |
+| 可迁移技能 | 换行业、换公司也带得走的能力（写作、数据分析、项目管理、销售等），不会因为离开某个行业就作废。 |
+| 百万医疗险 | 一年几百块、住院医疗费用可报销数百万的报销型保险；保费随年龄涨、需年年买、通常不保证长期续保。 |
+| 给付型重疾险 | 确诊合同约定的重大疾病，直接赔一笔约定金额（不是花多少报多少），这笔钱可用来补生病期间的收入损失。 |
+</script>
+
+<div id="pop" role="tooltip" hidden><b></b><span></span></div>
+<script>
+(function(){
+  var src=document.getElementById('gloss-data');if(!src)return;
+  var rows=[];
+  src.textContent.split(/\r?\n/).forEach(function(line){
+    line=line.trim();if(!line)return;
+    var c=/^\|\s*(.+?)\s*\|\s*(.+?)\s*\|$/.exec(line);if(!c)return;
+    c[1].split('、').forEach(function(t){
+      t=t.trim();if(!t)return;
+      rows.push({term:t,meaning:c[2].trim(),latin:/^[A-Za-z0-9%. ]+$/.test(t)});
+    });
+  });
+  rows.sort(function(a,b){return b.term.length-a.term.length;});
+  if(!rows.length)return;
+  var esc=function(t){return t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');};
+  var alt=function(list){return list.map(function(g){return esc(g.term);}).join('|');};
+  var parts=[];
+  var latin=rows.filter(function(g){return g.latin;});
+  var cjk=rows.filter(function(g){return !g.latin;});
+  if(latin.length)parts.push('(?<![A-Za-z0-9])(?:'+alt(latin)+')(?![A-Za-z0-9])');
+  if(cjk.length)parts.push('(?:'+alt(cjk)+')');
+  var RE=new RegExp(parts.join('|'),'g');
+  var BY=Object.fromEntries(rows.map(function(g){return [g.term,g];}));
+
+  var dl=document.querySelector('#gloss dl');
+  rows.forEach(function(g){
+    var dt=document.createElement('dt');dt.textContent=g.term;
+    var dd=document.createElement('dd');dd.textContent=g.meaning;
+    dl.appendChild(dt);dl.appendChild(dd);
+  });
+
+  var roots=Array.prototype.slice.call(document.querySelectorAll('.wrap')).filter(function(w){return !w.querySelector('.hero');});
+  roots.forEach(function(root){
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    var nodes=[];var n;
+    while((n=walker.nextNode())){
+      var el=n.parentElement;if(!el)continue;
+      if(el.closest('a,abbr,script,style,#refs,sup.ref,#gloss'))continue;
+      nodes.push(n);
+    }
+    nodes.forEach(function(node){
+      var s=node.nodeValue;RE.lastIndex=0;
+      if(!RE.test(s))return;RE.lastIndex=0;
+      var frag=document.createDocumentFragment();var pos=0,m;
+      while((m=RE.exec(s))){
+        var g=BY[m[0]];if(!g)continue;
+        if(m.index>pos)frag.appendChild(document.createTextNode(s.slice(pos,m.index)));
+        var ab=document.createElement('abbr');ab.className='term';ab.textContent=m[0];
+        ab.title=g.meaning;ab.tabIndex=0;ab.dataset.term=g.term;
+        frag.appendChild(ab);pos=m.index+m[0].length;
+      }
+      if(pos<s.length)frag.appendChild(document.createTextNode(s.slice(pos)));
+      node.parentNode.replaceChild(frag,node);
+    });
+  });
+
+  var pop=document.getElementById('pop');
+  function show(ab){
+    pop.querySelector('b').textContent=ab.dataset.term;
+    pop.querySelector('span').textContent=ab.title;
+    pop.hidden=false;
+    var r=ab.getBoundingClientRect();var w=Math.min(360,innerWidth-24);
+    var x=r.left+r.width/2-w/2;x=Math.max(12,Math.min(x,innerWidth-w-12));
+    pop.style.width=w+'px';pop.style.left=x+'px';
+    var below=r.bottom+8+pop.offsetHeight<innerHeight;
+    pop.style.top=(below?r.bottom+8:r.top-8-pop.offsetHeight)+scrollY+'px';
+  }
+  document.addEventListener('click',function(e){
+    var ab=e.target.closest&&e.target.closest('abbr.term');
+    if(ab){e.preventDefault();show(ab);return;}
+    if(!e.target.closest('#pop'))pop.hidden=true;
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement.matches&&document.activeElement.matches('abbr.term'))show(document.activeElement);});
+  addEventListener('scroll',function(){pop.hidden=true;},{passive:true});
 })();
 </script>
 
