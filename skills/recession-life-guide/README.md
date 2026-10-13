@@ -6,7 +6,7 @@
 
 这是 [strangeyu911-tech/mirror-guide](https://github.com/strangeyu911-tech/mirror-guide) 里在线补丁 [《衰退时代补丁包》](https://mirror.strangeyu.xyz/patch) 的配套 skill，也是 HowToLiveBetter 官方 [life-decision-guide](https://github.com/eternity4719/HowToLiveBetter/blob/main/skills/life-decision-guide/README.md) 的**衰退期姊妹篇**——不是替代：跨周期通用的账（疫苗、低钠盐、别担保、急救、营养）请用官方 skill 查原书。
 
-规则在 [SKILL.md](SKILL.md)，33 条语料在 [patches.md](patches.md)（与在线页逐字对应，判断时点 2026 年 10 月）。
+规则在 [SKILL.md](SKILL.md)，41 条语料在 [patches.md](patches.md)（与在线页逐字对应，判断时点 2026 年 10 月）。
 
 ## 装到 Claude Code
 
@@ -44,8 +44,8 @@ Invoke-WebRequest "https://raw.githubusercontent.com/strangeyu911-tech/mirror-gu
 
 ## 语料和完整论证从哪来
 
-- 本目录自带 `patches.md`（33 条，几十 KB），日常问答只查它就够。
-- 每条背后的中日数据、35 位学者观点、置信度与证伪逻辑在《以日为鉴：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
+- 本目录自带 `patches.md`（41 条，几十 KB），日常问答只查它就够。
+- 每条背后的中日数据、20 余位学者观点、置信度与证伪逻辑在《以日为鉴：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
 
 ```bash
 git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMPDIR:-/tmp}/mrg"
@@ -56,7 +56,7 @@ git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMP
 
 ## 季度更新
 
-33 条与情形 A / B 判断按季度随财政、物价、房地产数据滚动修订。更新在线页和 `patches.md` 即可，`SKILL.md` 里不留会跟着数据漂的数值（档位定义、五个信号、排序规则长期稳定）。本地装过的，重跑一遍上面的 `curl`（或 PowerShell）拉取最新 `patches.md`。
+41 条与情形 A / B 判断按季度随财政、物价、房地产数据滚动修订。更新在线页和 `patches.md` 即可，`SKILL.md` 里不留会跟着数据漂的数值（档位定义、五个信号、排序规则长期稳定）。本地装过的，重跑一遍上面的 `curl`（或 PowerShell）拉取最新 `patches.md`。
 
 ## 许可与归属
 
