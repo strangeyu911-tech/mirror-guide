@@ -38,6 +38,13 @@
 
   var SKIP = 'nav#toc, #toc-mask, #progress, script, style, noscript, .fab, .fabgroup, #anno-root';
 
+  /* 两种章节模型，两页各用一种：
+     · 标题型（index.html）—— id 挂在 h1~h6 上，区间 = 该标题之后、下一个同级或更高级标题之前。
+     · 容器型（patch.html 的补丁卡片）—— id 挂在包住整块内容的元素上，整棵子树都归它。
+     两种可以共存：容器内部的小标题不再参与标题模型，免得把卡片的正文切碎。 */
+  var HEAD_ID_RE = /^s[0-9][0-9a-z_-]*$/i;
+  var CARD_ID_RE = /^p[0-9]{1,3}$/i;
+
   var SUPPORT = !!(window.CSS && CSS.highlights && window.Highlight);
   var secIndex = null;          // { secs: {id:{el,text,nodes,starts}}, nodeSec: Map, nodeOff: Map }
   var annos = [];               // 本地批注
@@ -91,7 +98,10 @@
     var nodeSec = new Map();
     var nodeOff = new Map();
     var stack = [];
-    var cur = null;
+    var headingCur = null;        // 当前标题区间所属章节
+    var containerEl = null;       // 当前所在的容器型章节元素
+    var containerCur = null;      // 其 id
+    var cur = null;               // 生效中的章节 id
 
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
@@ -105,19 +115,43 @@
 
     var n;
     while ((n = walker.nextNode())) {
+      // 容器型章节只覆盖自己的子树：走出去了立刻失效。
+      // 否则卡片之后的页脚/公告文字会被错误地并进最后一张卡片里。
+      if (containerEl && !containerEl.contains(n)) {
+        containerEl = null;
+        containerCur = null;
+        cur = headingCur;
+      }
+
       if (n.nodeType === 1) {
         var tag = n.tagName;
+
         if (tag && /^H[1-6]$/.test(tag)) {
-          var lvl = Number(tag[1]);
-          while (stack.length && stack[stack.length - 1].lvl >= lvl) stack.pop();
-          var id = (n.id && /^s[0-9][0-9a-z_-]*$/i.test(n.id)) ? n.id : null;
-          stack.push({ lvl: lvl, id: id });
-          cur = null;
-          for (var i = stack.length - 1; i >= 0; i--) { if (stack[i].id) { cur = stack[i].id; break; } }
-          if (id && !secs[id]) secs[id] = { el: n, text: '', nodes: [], starts: [] };
+          if (!containerCur) {   // 容器内部的小标题不参与标题模型
+            var lvl = Number(tag[1]);
+            while (stack.length && stack[stack.length - 1].lvl >= lvl) stack.pop();
+            var hid = (n.id && HEAD_ID_RE.test(n.id)) ? n.id : null;
+            stack.push({ lvl: lvl, id: hid });
+            headingCur = null;
+            for (var i = stack.length - 1; i >= 0; i--) { if (stack[i].id) { headingCur = stack[i].id; break; } }
+            if (hid && !secs[hid]) secs[hid] = { el: n, text: '', nodes: [], starts: [] };
+          }
+          cur = containerCur || headingCur;
+          continue;
         }
+
+        // 容器型章节：整棵子树都归它
+        if (n.id && CARD_ID_RE.test(n.id)) {
+          if (!secs[n.id]) secs[n.id] = { el: n, text: '', nodes: [], starts: [] };
+          containerEl = n;
+          containerCur = n.id;
+          cur = n.id;
+          continue;
+        }
+
         continue;
       }
+
       if (!cur) continue;
       var s = secs[cur];
       if (!s) continue;
@@ -136,6 +170,19 @@
   function index() {
     if (!secIndex) secIndex = buildIndex();
     return secIndex;
+  }
+
+  /* 面板里显示章节时用可读标题，而不是 s41 / p05 这种内部 id。
+     可用 data-anno-label 覆盖；否则取该章节元素自身（或其后代）的标题文字。 */
+  function secLabel(id) {
+    var s = index().secs[id];
+    var e = s && s.el;
+    if (!e) return id;
+    if (e.getAttribute && e.getAttribute('data-anno-label')) return e.getAttribute('data-anno-label');
+    var h = /^H[1-6]$/.test(e.tagName) ? e : e.querySelector('h1,h2,h3,h4,h5,h6');
+    var t = (h ? h.textContent : e.textContent) || '';
+    t = t.replace(/\s+/g, ' ').trim();
+    return t ? (t.length > 26 ? t.slice(0, 26) + '…' : t) : id;
   }
 
   /* ============================================== Range ⇄ 锚点 */
@@ -479,7 +526,7 @@
       it.innerHTML =
         '<p class="ex">' + esc(a.exact) + '</p>' +
         '<p class="bd">' + esc(a.body) + '</p>' +
-        '<div class="mt"><span>' + esc(a.sec) + '</span>' + syncTxt +
+        '<div class="mt"><span title="' + esc(secLabel(a.sec)) + '">' + esc(secLabel(a.sec)) + '</span>' + syncTxt +
         (ok ? '' : '<span class="warn">待重定位</span>') +
         '<span class="del" data-del="' + a.id + '">删除</span></div>';
       it.addEventListener('mouseenter', function () { hover(a, true); });
@@ -489,6 +536,12 @@
         var r = resolve(a);
         if (r) {
           var box = r.getBoundingClientRect();
+          // 补丁页有筛选：被筛掉的卡片是 display:none，这时 getBoundingClientRect
+          // 全是 0，照着跳会跳到页面顶部 —— 不如直接说清为什么跳不过去。
+          if (!box.width && !box.height) {
+            toast('这条现在被筛选条件藏起来了 —— 先点「清空筛选」，再点它');
+            return;
+          }
           window.scrollTo({ top: window.pageYOffset + box.top - window.innerHeight / 2, behavior: 'smooth' });
         }
       });

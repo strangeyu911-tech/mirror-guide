@@ -22,23 +22,23 @@ Worker（本目录）
 
 ## 当前状态（2026-10-13 实测）
 
-| 项 | 状态 |
-|---|---|
-| Worker 部署 | ✅ 已上线 `https://anno.strangeyu.xyz` |
-| 健康检查 | ✅ `GET /api/health` → `{"ok":true,"store":"kv","turnstile":false,"github":true}` |
-| 自定义域 | ✅ `anno.strangeyu.xyz` 已绑定 |
-| KV 命名空间 | ✅ `mirror-guide-anno`（id `157f5a2bc56b417e93f5fb09d08cc799`） |
-| 私有反馈仓库 | ✅ `strangeyu911-tech/mirror-guide-feedback`（visibility=private），issue #1 已 pin，4 个标签 `new`/`accepted`/`rejected`/`fixed` |
-| `GITHUB_TOKEN` | ✅ 已写入 secret（用的是本机 `gh auth token`，**不需要另建 PAT**） |
-| `HASH_SALT` | ✅ 已写入 secret |
-| `TURNSTILE_SECRET` | ⚪️ 未配置，`turnstile:false`（不阻塞：蜜罐 + 提交耗时 + 限流已实测生效） |
-| 前端接入 | ✅ `index.html` 底部一行 `<script src="annotate.js" defer></script>` |
-| 单元测试 | ✅ `node test/unit.mjs` → 37 通过 / 0 失败 |
+| 项                  | 状态                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Worker 部署          | ✅ 已上线 `https://anno.strangeyu.xyz`                                                                                       |
+| 健康检查               | ✅ `GET /api/health` → `{"ok":true,"store":"kv","turnstile":false,"github":true}`                                         |
+| 自定义域               | ✅ `anno.strangeyu.xyz` 已绑定                                                                                               |
+| KV 命名空间            | ✅ `mirror-guide-anno`（id `157f5a2bc56b417e93f5fb09d08cc799`）                                                             |
+| 私有反馈仓库             | ✅ `strangeyu911-tech/mirror-guide-feedback`（visibility=private），issue #1 已 pin，4 个标签 `new`/`accepted`/`rejected`/`fixed` |
+| `GITHUB_TOKEN`     | ✅ 已写入 secret（用的是本机 `gh auth token`，**不需要另建 PAT**）                                                                        |
+| `HASH_SALT`        | ✅ 已写入 secret                                                                                                             |
+| `TURNSTILE_SECRET` | ⚪️ 未配置，`turnstile:false`（不阻塞：蜜罐 + 提交耗时 + 限流已实测生效）                                                                        |
+| 前端接入               | ✅ 两页各一行 `<script src="annotate.js" defer></script>`（`index.html` / `patch.html`）                                          |
+| 单元测试               | ✅ `node test/unit.mjs` → 37 通过 / 0 失败                                                                                    |
 
 ### 为什么用 KV 而不是 D1
 
-批注是"写得少、读得极少、只按 id 取"的场景，KV 足够，且省掉建表与迁移。
-更实际的原因：现有 Cloudflare token **没有 D1 权限**（建库返回 401），而 KV 权限本来就有。
+批注是"写得少、读得极少、只按 id 取"的场景，KV 足够，且省掉建表与迁移。  
+更实际的原因：现有 Cloudflare token **没有 D1 权限**（建库返回 401），而 KV 权限本来就有。  
 若日后确实要换 D1，改造点在 `worker/src/index.js` 里 `env.KV` 的四处调用。
 
 ---
@@ -65,7 +65,7 @@ CF_TOKEN=<token> node deploy/deploy.mjs --dump 备份.json
 CF_TOKEN=<token> node deploy/deploy.mjs --kv=<namespace_id>
 ```
 
-> ⚠️ `PUT /workers/scripts/{name}` 是**全量替换**：`bindings` 必须一次带全（KV + 所有 vars），
+> ⚠️ `PUT /workers/scripts/{name}` 是**全量替换**：`bindings` 必须一次带全（KV + 所有 vars），  
 > 漏一个就会**静默抹掉**它。`deploy.mjs` 已经把全部 vars 写在 `VARS` 里，改配置改那里，别在后台点。
 
 ### 清理 KV（联调后必做）
@@ -96,13 +96,13 @@ CF_TOKEN_FILE=<token文件路径> node deploy/kv-clean.mjs --apply   # 真删
 
 ## 日常操作
 
-**看新反馈**：直接看私有仓库的 issue #1（有 pin），每条 comment 就是一条批注；
+**看新反馈**：直接看私有仓库的 issue #1（有 pin），每条 comment 就是一条批注；  
 处理完给 comment 加「已采纳/不采纳」的回复，或在该 issue 上打标签。
 
-**查数据**：`CF_TOKEN_FILE=<path> node deploy/kv-clean.mjs` 会列出全部 key（`anno:<id>`）；
+**查数据**：`CF_TOKEN_FILE=<path> node deploy/kv-clean.mjs` 会列出全部 key（`anno:<id>`）；  
 单条内容用 `node deploy/deploy.mjs --dump 备份.json` 整体导出。
 
-**代发失败的补发**：KV 里存着 `gh` 字段记录代发结果；`gh.ok=false` 的那些说明 comment 没发出去，
+**代发失败的补发**：KV 里存着 `gh` 字段记录代发结果；`gh.ok=false` 的那些说明 comment 没发出去，  
 数据仍在 KV 里，可手动补到 issue。
 
 ---
@@ -118,16 +118,59 @@ node test/unit.mjs     # 37 项纯逻辑单测：fence 围栏递进、validate �
 ## 前端接入（annotate.js）
 
 页面只多一行 `<script src="annotate.js" defer></script>`，模块自己注入样式与 UI。
+`index.html` 与 `patch.html` 都已接入。
+
+### 两页用的是两套章节模型
+
+锚点必须落在一个"章节"里（`sec + 章节内文本偏移 + 原片段 + 前后 40 字上下文`），
+所以两页各自需要一种模型。`buildIndex()` 一次遍历同时支持两者：
+
+| 页面          | 模型  | id 挂在哪                              | 区间算法                          |
+| ----------- | --- | ---------------------------------- | ----------------------------- |
+| `index.html` | 标题型 | `h1~h6`（`s00`/`s10`/`s11`…`s99`）    | 到下一个**同级或更高级**标题为止            |
+| `patch.html` | 容器型 | 包住整块内容的元素（41 张 `.pcard` 的 `pNN`） | **整棵子树**都归它                   |
+
+两条容易写错的规则：
+
+1. **容器内部的无 id 小标题不能打断容器归属。** 卡片里还有 `<h3>`（卡片标题），
+   它必须继续算在这张卡里，否则卡片正文会被切成两截、锚点上下文全乱。
+2. **离开容器子树后作用域要立刻失效。** 否则最后一张卡片之后的页脚、致谢、免责声明
+   会被并入 `p41`，读者能对页脚划线。
+
+实测边界（本地 `__anno.resolve` 验证）：`p41` 能定位到自己的正文、**定位不到**页脚与致谢；
+`p01` 定位不到它上面的"情形 A/B"板块。
+
+id 的命名规则是 `HEAD_ID_RE = /^s[0-9]/`、`CARD_ID_RE = /^p[0-9]{1,3}$/`，
+其余 id（`#ref1`、`#shouzhu-cards`…）不会被当成章节。
+
+### 面板里显示的是标题，不是 `p20`
+
+`secLabel(id)` 优先读元素上的 `data-anno-label`，否则取该章节元素自己（或其后代）
+第一个 `h1~h6` 的文字，截 26 字。所以卡片在面板里显示成
+「家庭资产按"自住 / 投资 / 现金等价物"三分」而不是 `p20`。
+
+### 批注落在被筛掉的卡片上
+
+补丁页有筛选，被筛掉的卡片是 `display:none` —— 这时 `getBoundingClientRect()` 全是 0，
+照着跳会跳到页面顶部。现在会拦住并提示「先点『清空筛选』」。
+
+### 补 `patch.html` 卡片 id 的工具
+
+`tools/add-card-ids.cjs`（幂等，`--check` 只报告）。patch.html 如果重生成，跑一次即可：
+
+```bash
+node tools/add-card-ids.cjs patch.html
+```
 
 **踩过的两个坑，改前端时别踩回去：**
 
-1. **z-index 必须高于站点自身最高层。** 站点有 `#progress`(999)、`#toc`(950)、`div.bottomnav`(800)，
-   且目录栏与底栏都是**不透明**的。批注层早年用 70~90，结果整个 UI 被目录栏盖住，读者点不到。
+1. **z-index 必须高于站点自身最高层。** 站点有 `#progress`(999)、`#toc`(950)、`div.bottomnav`(800)，  
+   且目录栏与底栏都是**不透明**的。批注层早年用 70~90，结果整个 UI 被目录栏盖住，读者点不到。  
    现在统一 1000/1001/1002/1003。
-2. **悬浮按钮的落点要实测避让。** `placeRoot()` 从右下角逐格往上探，找到第一个"按钮下沿下方
-   没有不透明固定层"的位置，写进 `--anno-safe-b`。判定"遮挡"时必须
-   **扫完整个堆叠**（底栏是 sticky 容器套 relative 链接，只看栈顶会漏判），
-   并且**只认视觉不透明的层**（浏览器扩展常注入 `rgba(0,0,0,0)` 的整屏透明层，
+2. **悬浮按钮的落点要实测避让。** `placeRoot()` 从右下角逐格往上探，找到第一个"按钮下沿下方  
+   没有不透明固定层"的位置，写进 `--anno-safe-b`。判定"遮挡"时必须  
+   **扫完整个堆叠**（底栏是 sticky 容器套 relative 链接，只看栈顶会漏判），  
+   并且**只认视觉不透明的层**（浏览器扩展常注入 `rgba(0,0,0,0)` 的整屏透明层，  
    按它避让会把按钮顶到页面中间）。
 
 ---

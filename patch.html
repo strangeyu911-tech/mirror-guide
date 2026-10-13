@@ -416,7 +416,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="cash" style="border-bottom:0;padding-top:26px">
   <div class="group-head"><h2>一、现金与负债</h2><span class="gcount">先不输，再谈赢</span></div>
 
-  <article class="pcard" data-sec="cash" data-patch="up" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p01" data-sec="cash" data-patch="up" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">01</span><span class="pc-badge b-up">升级</span><h3>把应急现金从"3–6 个月"拉长到"6–12 个月"</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -433,7 +433,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">月数为操作参考、非官方红线；刚性支出指房贷、吃饭、社保这类断了会出事的钱。</p>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p02" data-sec="cash" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">02</span><span class="pc-badge b-new">新增</span><h3>应急金只放"随取随用"，不锁长定存、不追收益</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -448,7 +448,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="reverse" data-grade="mid" data-persona="mid">
+  <article class="pcard" id="p03" data-sec="cash" data-patch="reverse" data-grade="mid" data-persona="mid">
     <div class="pc-head"><span class="pc-no">03</span><span class="pc-badge b-reverse">反转</span><h3>不要凭焦虑提前还贷</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（方向相反）</span></div></div>
     <div class="pc-compare">
@@ -464,7 +464,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">35–40% 为参考区间、非官方红线；高负债中年家庭尤其要看清这一条。</p>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="new" data-grade="fact" data-persona="all">
+  <article class="pcard" id="p04" data-sec="cash" data-patch="new" data-grade="fact" data-persona="all">
     <div class="pc-head"><span class="pc-no">04</span><span class="pc-badge b-new">新增</span><h3>绝不替人担保、不卷互保链、不借消费贷加杠杆</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -479,7 +479,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p05" data-sec="cash" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">05</span><span class="pc-badge b-new">新增</span><h3>记住五个证伪信号，它是你"加码防御"的总开关</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（监测）</span></div></div>
     <div class="pc-compare">
@@ -494,7 +494,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="new" data-grade="mid" data-persona="mid">
+  <article class="pcard" id="p06" data-sec="cash" data-patch="new" data-grade="mid" data-persona="mid">
     <div class="pc-head"><span class="pc-no">06</span><span class="pc-badge b-new">新增</span><h3>人口流出地、远郊无产业的房子优先处置，别等反弹</h3>
       <div class="pc-tags"><span class="mini bonly">仅 B 档加码</span></div></div>
     <div class="pc-compare">
@@ -509,7 +509,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="cash" data-patch="down" data-grade="mid" data-persona="mid retire">
+  <article class="pcard" id="p07" data-sec="cash" data-patch="down" data-grade="mid" data-persona="mid retire">
     <div class="pc-head"><span class="pc-no">07</span><span class="pc-badge b-down">降级</span><h3>情形 A 下别全仓现金，"纯持币"会被再通胀慢慢稀释</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（但要分档）</span></div></div>
     <div class="pc-compare">
@@ -530,7 +530,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="job" style="border-bottom:0;padding-top:10px">
   <div class="group-head"><h2>二、工作与职业</h2><span class="gcount">在存量市场里安身</span></div>
 
-  <article class="pcard" data-sec="job" data-patch="up" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p08" data-sec="job" data-patch="up" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">08</span><span class="pc-badge b-up">升级</span><h3>"不裸辞"升级为"空窗期不超过 6 个月"，B 档压到 3 个月</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -545,7 +545,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh mid">
+  <article class="pcard" id="p09" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh mid">
     <div class="pc-head"><span class="pc-no">09</span><span class="pc-badge b-new">新增</span><h3>先确认自己站在"扩张的那一侧"</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -560,7 +560,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="reverse" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p10" data-sec="job" data-patch="reverse" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">10</span><span class="pc-badge b-reverse">反转</span><h3>考研不是避风港：为逃避就业读研，尤其文科，是亏本买卖</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -575,7 +575,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p11" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">11</span><span class="pc-badge b-new">新增</span><h3>读研只在三种情况值得</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -590,7 +590,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p12" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">12</span><span class="pc-badge b-new">新增</span><h3>考公别当"进去就安全"：编制溢价在 2028 年后可能收窄</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（预期管理）</span></div></div>
     <div class="pc-compare">
@@ -606,7 +606,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">2027 年度招录数据含机构预测、非官方，公告发布后以官方数为准。</p>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="fact" data-persona="fresh">
+  <article class="pcard" id="p13" data-sec="job" data-patch="new" data-grade="fact" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">13</span><span class="pc-badge b-new">新增</span><h3>学医仍值，但提前选"老龄化需要的科室"，别挤三甲热门</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -621,7 +621,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="fact" data-persona="fresh">
+  <article class="pcard" id="p14" data-sec="job" data-patch="new" data-grade="fact" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">14</span><span class="pc-badge b-new">新增</span><h3>当老师看清出生人口：幼师、小学岗位最先收缩</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -637,7 +637,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">2026 秋季新生为秦玉友等依据出生队列估算（误差不足 3%），非官方实际招生数，2027 年公报后更新；各学段达峰时间表见教育部 2026-03《教育资源如何适配学龄人口变化》与中国教育科学研究院预测。</p>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="low" data-persona="mid">
+  <article class="pcard" id="p15" data-sec="job" data-patch="new" data-grade="low" data-persona="mid">
     <div class="pc-head"><span class="pc-no">15</span><span class="pc-badge b-new">新增</span><h3>35–50 岁高房贷者：提前 24 个月横向迁移，别等被裁</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -653,7 +653,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">"不到 20%"为 Boden 书外视频转述、低可信；但"提前迁移、留现金流"的动作方向与多位学者建议一致。</p>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh mid">
+  <article class="pcard" id="p16" data-sec="job" data-patch="new" data-grade="mid" data-persona="fresh mid">
     <div class="pc-head"><span class="pc-no">16</span><span class="pc-badge b-new">新增</span><h3>理工科选"有全球竞争力"的赛道；"会调包"型 AI 岗在贬值</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -668,7 +668,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="job" data-patch="reverse" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p17" data-sec="job" data-patch="reverse" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">17</span><span class="pc-badge b-reverse">反转</span><h3>别拿"以后年轻人变少"给现在开脱：供给收缩要等十几年，你的窗口只有这几年</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -691,7 +691,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="house" style="border-bottom:0;padding-top:10px">
   <div class="group-head"><h2>三、房子与资产</h2><span class="gcount">买不买、怎么配</span></div>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p18" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">18</span><span class="pc-badge b-new">新增</span><h3>买房：四个条件同时满足才出手</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -708,7 +708,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="all free">
+  <article class="pcard" id="p19" data-sec="house" data-patch="new" data-grade="mid" data-persona="all free">
     <div class="pc-head"><span class="pc-no">19</span><span class="pc-badge b-new">新增</span><h3>四种情况，坚决租</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -724,7 +724,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid">
+  <article class="pcard" id="p20" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid">
     <div class="pc-head"><span class="pc-no">20</span><span class="pc-badge b-new">新增</span><h3>家庭资产按"自住 / 投资 / 现金等价物"三分</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -739,7 +739,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid free">
+  <article class="pcard" id="p21" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid free">
     <div class="pc-head"><span class="pc-no">21</span><span class="pc-badge b-new">新增</span><h3>低负债中年：分批配权益，证伪信号一出现就暂停</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（但要分档）</span></div></div>
     <div class="pc-compare">
@@ -755,7 +755,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">不构成投资建议，具体产品请咨询持牌专业人士。</p>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p22" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">22</span><span class="pc-badge b-new">新增</span><h3>买房前先自己算一遍"净租金回报率"，十分钟能算完一套</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -773,7 +773,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">四家机构口径差异很大（58 安居客 38 城 2.86%｜贝壳 50 城 2.80%｜易居 9 城老破小 8 城平均 2.67%｜中指 50 城 2.26%），别拿单个数字当真理。回报率上升是"房价跌得多"换来的，不代表可以买。</p>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p23" data-sec="house" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">23</span><span class="pc-badge b-new">新增</span><h3>按"城市分档 × 买租目的"对号入座，再决定买还是租</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -791,7 +791,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">反向提醒：核心城市、净现金流为正、月供可控的房子，别因为"它没涨"就焦虑卖出——阴跌期频繁交易的税费与折价，往往比"少赚一点"更贵。</p>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid">
+  <article class="pcard" id="p24" data-sec="house" data-patch="new" data-grade="mid" data-persona="mid">
     <div class="pc-head"><span class="pc-no">24</span><span class="pc-badge b-new">新增</span><h3>提前还贷先量三把尺子；决定要还，就选"缩短年限"</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -809,7 +809,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">2026/8/28 央行与金融监管总局《关于促进个人住房贷款合理需求的指导意见》允许房贷期限拉长至最长 40 年、存量房贷可协商展期——政策方向是摊薄月供、而非继续降利率。另：还款满 1 年后多数银行免收违约金；还清后记得办抵押注销。</p>
   </article>
 
-  <article class="pcard" data-sec="house" data-patch="new" data-grade="fact" data-persona="all">
+  <article class="pcard" id="p25" data-sec="house" data-patch="new" data-grade="fact" data-persona="all">
     <div class="pc-head"><span class="pc-no">25</span><span class="pc-badge b-new">新增</span><h3>警惕"负动产"：房子可以变成卖不掉、还要每月倒贴的负担</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（认知）</span></div></div>
     <div class="pc-compare">
@@ -832,7 +832,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="health" style="border-bottom:0;padding-top:10px">
   <div class="group-head"><h2>四、医疗与养老</h2><span class="gcount">老龄化是最确定的一笔长期支出</span></div>
 
-  <article class="pcard" data-sec="health" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p26" data-sec="health" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">26</span><span class="pc-badge b-new">新增</span><h3>别按养老金账户的"记账额"规划退休——个人账户实质空账</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（认知）</span></div></div>
     <div class="pc-compare">
@@ -848,7 +848,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">空账事实为高可信；"2044"是特定精算团队基准情景结果、参数依赖，非预言。</p>
   </article>
 
-  <article class="pcard" data-sec="health" data-patch="new" data-grade="fact" data-persona="mid">
+  <article class="pcard" id="p27" data-sec="health" data-patch="new" data-grade="fact" data-persona="mid">
     <div class="pc-head"><span class="pc-no">27</span><span class="pc-badge b-new">新增</span><h3>个人养老金账户：个税税率到 10% 档以上才值得开</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -863,7 +863,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="health" data-patch="up" data-grade="fact" data-persona="all">
+  <article class="pcard" id="p28" data-sec="health" data-patch="up" data-grade="fact" data-persona="all">
     <div class="pc-head"><span class="pc-no">28</span><span class="pc-badge b-up">升级</span><h3>医保绝不断缴；商业险只买高杠杆百万医疗，不碰"全家桶"</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -879,7 +879,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">不推荐具体公司或产品，选择前咨询持牌专业人士。</p>
   </article>
 
-  <article class="pcard" data-sec="health" data-patch="new" data-grade="mid" data-persona="mid retire">
+  <article class="pcard" id="p29" data-sec="health" data-patch="new" data-grade="mid" data-persona="mid retire">
     <div class="pc-head"><span class="pc-no">29</span><span class="pc-badge b-new">新增</span><h3>预期养老替代率持续下降，第三支柱要自己补</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -894,7 +894,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="health" data-patch="new" data-grade="fact" data-persona="all">
+  <article class="pcard" id="p30" data-sec="health" data-patch="new" data-grade="fact" data-persona="all">
     <div class="pc-head"><span class="pc-no">30</span><span class="pc-badge b-new">新增</span><h3>健康是回报率最高的"养老资产"，因为最大头支出是失能照护</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -914,7 +914,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="family" style="border-bottom:0;padding-top:10px">
   <div class="group-head"><h2>五、婚育与家庭</h2><span class="gcount">两个人的长期合伙</span></div>
 
-  <article class="pcard" data-sec="family" data-patch="new" data-grade="low" data-persona="all">
+  <article class="pcard" id="p31" data-sec="family" data-patch="new" data-grade="low" data-persona="all">
     <div class="pc-head"><span class="pc-no">31</span><span class="pc-badge b-new">新增</span><h3>婚前对齐三件事，否则下行期婚姻就是放大器</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（决策时）</span></div></div>
     <div class="pc-compare">
@@ -929,7 +929,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="family" data-patch="new" data-grade="low" data-persona="all">
+  <article class="pcard" id="p32" data-sec="family" data-patch="new" data-grade="low" data-persona="all">
     <div class="pc-head"><span class="pc-no">32</span><span class="pc-badge b-new">新增</span><h3>把婚姻当"两人合资小公司"治理：它是风险管理工具</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -949,7 +949,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 <section class="psec" data-sec="chance" style="border-bottom:0;padding-top:10px">
   <div class="group-head"><h2>六、机会与心态</h2><span class="gcount">在冰河期做跨周期玩家</span></div>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh mid">
+  <article class="pcard" id="p33" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh mid">
     <div class="pc-head"><span class="pc-no">33</span><span class="pc-badge b-new">新增</span><h3>最大增量在出海与新技术，门票是"英语＋专业＋跨文化"</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -965,7 +965,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p34" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">34</span><span class="pc-badge b-new">新增</span><h3>文科仅存的扩张岗在文化出海，但头部效应极强</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -980,7 +980,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="free">
+  <article class="pcard" id="p35" data-sec="chance" data-patch="new" data-grade="mid" data-persona="free">
     <div class="pc-head"><span class="pc-no">35</span><span class="pc-badge b-new">新增</span><h3>自由职业的终极防御：把个人能力产品化</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -995,7 +995,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="reverse" data-grade="low" data-persona="all">
+  <article class="pcard" id="p36" data-sec="chance" data-patch="reverse" data-grade="low" data-persona="all">
     <div class="pc-head"><span class="pc-no">36</span><span class="pc-badge b-reverse">反转</span><h3>别和上一代的高点比：那是历史红利，不是你的基准线</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（心态）</span></div></div>
     <div class="pc-compare">
@@ -1010,7 +1010,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="low" data-persona="all">
+  <article class="pcard" id="p37" data-sec="chance" data-patch="new" data-grade="low" data-persona="all">
     <div class="pc-head"><span class="pc-no">37</span><span class="pc-badge b-new">新增</span><h3>学"可迁移"的技能，保持一段不依赖工作的关系</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -1025,7 +1025,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p38" data-sec="chance" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">38</span><span class="pc-badge b-new">新增</span><h3>别把防御变成习惯：信号消退，就要撤回加码</h3>
       <div class="pc-tags"><span class="mini always">两情形都做（纪律）</span></div></div>
     <div class="pc-compare">
@@ -1040,7 +1040,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh mid">
+  <article class="pcard" id="p39" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh mid">
     <div class="pc-head"><span class="pc-no">39</span><span class="pc-badge b-new">新增</span><h3>找外派岗：五个渠道按可信度排序，先查备案再投简历</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -1058,7 +1058,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <p class="pc-note">渠道 1、2 为官方来源、高可信；3–5 依可信度递减，中介兜底风险最高。</p>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="all">
+  <article class="pcard" id="p40" data-sec="chance" data-patch="new" data-grade="mid" data-persona="all">
     <div class="pc-head"><span class="pc-no">40</span><span class="pc-badge b-new">新增</span><h3>五种出海模式先对号：要冒什么险、能拿什么、退得出来吗</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -1075,7 +1075,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     </div>
   </article>
 
-  <article class="pcard" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh">
+  <article class="pcard" id="p41" data-sec="chance" data-patch="new" data-grade="mid" data-persona="fresh">
     <div class="pc-head"><span class="pc-no">41</span><span class="pc-badge b-new">新增</span><h3>语言 / 内容型文科生：走"跨境运营与本地化"，不必驻外</h3>
       <div class="pc-tags"><span class="mini always">两情形都做</span></div></div>
     <div class="pc-compare">
@@ -1105,6 +1105,9 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
       <p style="margin:10px 0 0;font-size:13px;color:#6b655b;line-height:1.65"><b>许可与改编声明：</b>原书正文以 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">知识共享署名 4.0（CC BY 4.0）</a> 许可发布。本补丁包是其<b>独立衍生增补</b>：未收录、未复制、也未改动原书任何一条正文；下列 41 条与"情形 A / B"判断均为 Strange 的独立增补，已按 CC BY 4.0 标明为改编作品，证据口径与原书不同、不代表原作者观点。原书一切内容以其<a href="https://github.com/eternity4719/HowToLiveBetter" target="_blank" rel="noopener">中文原文</a>为准（本补丁参照时点为 2026 年 10 月）。</p>
     </div>
   </div>
+
+  <div id="qq-entry"></div>
+
   <p>整理：Strange（灵感源自 Boden《以日为鉴：衰退时代生存指南》，本页为独立增补作品，非原书、亦非 HowToLiveBetter 官方版本）。<br>
   数据时点：2026 年 10 月。"情形 A 为主、置信度约 6–7 成"为该时点判断，会随季度数据滚动调整，请以本页标注的判断时点与最新数据为准。<br>
   本页为公开信息整理与研究观点，不构成投资、职业、医疗或法律建议，请结合自身情况独立决策。<br>
@@ -1365,6 +1368,11 @@ function toast(msg){var t=document.createElement('div');t.textContent=msg;
   addEventListener('scroll',function(){pop.hidden=true;},{passive:true});
 })();
 </script>
+
+<!-- 读者批注层（锚点挂在 .pcard 卡片上，容器型章节） -->
+<script src="annotate.js" defer></script>
+<!-- 读者 QQ 交流群入口 -->
+<script src="qqgroup.js" defer></script>
 
 </body>
 </html>
