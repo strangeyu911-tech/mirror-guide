@@ -1,0 +1,12 @@
+{
+  "name": "mirror-guide-anno-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "mirror-guide 读者批注后端（Cloudflare Worker + D1）",
+  "scripts": {
+    "test": "node test/unit.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  }
+}

@@ -1,0 +1,54 @@
+# mirror-guide 读者批注后端（Cloudflare Worker + KV）
+#
+# 说明：本机 wrangler 跑不起来（缺 @cloudflare/workerd-windows-64，连 --help 都崩），
+#       实际部署走 deploy/deploy.mjs（CF 原生 API）。本文件保留给能在本地跑
+#       wrangler 的环境使用，两边配置保持一致。
+#
+# 存储用 KV 而不是 D1 —— 批注是"写得少、读得极少、只按 id 取"的场景，KV 足够，
+# 且省掉建表与迁移。若日后换成 D1，见 README 的「换成 D1」一节。
+
+name = "mirror-guide-anno"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "KV"
+id = "157f5a2bc56b417e93f5fb09d08cc799"
+
+# 绑定自定义域（workers.dev 在国内不可达，必须绑自己的域）
+#   routes = [{ pattern = "anno.strangeyu.xyz", custom_domain = true }]
+
+[vars]
+# 允许提交的页面来源（CORS 白名单，同时也用于 origin 校验）
+ALLOWED_ORIGINS = "https://mirror.strangeyu.xyz,https://strangeyu911-tech.github.io"
+
+# 站点基址，用于在 comment 里生成可点链接
+SITE_BASE = "https://mirror.strangeyu.xyz/"
+
+# 接收批注的私有仓库与聚合 issue
+GH_OWNER = "strangeyu911-tech"
+GH_REPO = "mirror-guide-feedback"
+GH_ISSUE = "1"
+
+# 只允许这两个页面提交批注
+ALLOWED_PAGES = "index.html,patch.html"
+
+# 限流（按 ip_hash 计数，KV 计数器带 TTL 自动过期）
+LIMIT_PER_HOUR = "10"
+LIMIT_PER_DAY  = "50"
+
+# 批注正文长度（按码点计，中文友好）
+BODY_MIN = "5"
+BODY_MAX = "500"
+
+# 单条最多几个链接（防 SEO 垃圾）
+MAX_LINKS = "2"
+
+# 从页面可见到提交的最短耗时（毫秒），太快提交的当作脚本拒绝；0 = 关闭
+MIN_FILL_MS = "2500"
+
+# 以下是 secret，不要写在这里（用 deploy.mjs --secrets 写入）：
+#   GITHUB_TOKEN      能往 mirror-guide-feedback 发 issue comment 的凭据
+#   TURNSTILE_SECRET  Turnstile 的 secret key（没配则跳过人机验证）
+#   HASH_SALT         任意随机串，用于 IP hash 加盐
