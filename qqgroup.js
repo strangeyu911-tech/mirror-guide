@@ -1,5 +1,5 @@
 /**
- * mirror-guide 读者 QQ 群入口 —— 前端接入模块
+ * mirror-guide 读者联系入口（QQ 群 + 作者微信）—— 前端接入模块
  * ------------------------------------------------------------
  * 引入方式（一行）：
  *   <script src="qqgroup.js" defer></script>
@@ -7,13 +7,27 @@
  * 页面上放一个占位容器即可，脚本会把它填成一块入口卡片：
  *   <div id="qq-entry"></div>
  *
+ * 顶栏入口也是这个脚本建的（不需要改 HTML）：在「分享」按钮后面插一个图标按钮，
+ * 点开是一个下拉栏，跟站点的分享菜单同一套视觉：
+ *   ┌ 引导文案 ─────────────────────┐
+ *   │ [Q] QQ：1130141971            │ ← 点整行才跳转加群
+ *   │     点这一行加入读者交流群     │
+ *   │ ─────────────────────────     │
+ *   │ [微] 加作者微信交流            │ ← 点这行展开二维码
+ *   │     扫码加我 · 备注「以日为鉴」│
+ *   │      ┌────────────┐           │
+ *   │      │  微信二维码 │           │
+ *   │      └────────────┘           │
+ *   └───────────────────────────────┘
+ *
  * 可选覆盖配置（放在 qqgroup.js 之前）：
  *   <script>
  *   window.QQ_CONFIG = {
  *     groupNo: '1130141971',
  *     joinUrl: 'https://qun.qq.com/universal-share/share?...',
+ *     qr: 'wechat-qr.png',  // 作者微信二维码图片，默认按脚本自身路径推断
  *     slot: '#qq-entry',
- *     topbar: true          // 是否在顶栏加一个图标入口，默认 true
+ *     topbar: true          // 是否在顶栏加下拉入口，默认 true
  *   };
  *   </script>
  *
@@ -22,8 +36,8 @@
  *      是会被换掉、会过期的。所以群号本身必须是页面上"永远可用"的入口：
  *      可选中、可复制、可拿去 QQ 里搜。
  *   2. 微信内置浏览器（以及企业微信）会拦 QQ 域名，点了大概率是"已停止访问"。
- *      检测到微信环境时直接把按钮换成"复制群号"，并说清原因，不让读者白点。
- *   3. 顶栏图标只是快捷键，真正的兜底文案在页面里那块卡片上。
+ *      检测到微信环境时，那一行改成"复制群号"，并说清原因，不让读者白点。
+ *   3. 顶栏下拉是快捷键，真正把话说全的兜底文案在页面底部那块卡片上。
  */
 
 (function () {
@@ -38,6 +52,11 @@
   );
   var SLOT = CFG.slot || '#qq-entry';
   var WANT_TOPBAR = CFG.topbar !== false;
+  // 二维码图片：默认按脚本自身的路径推断，这样模块被放到子目录也不会指错
+  var QR_SRC = CFG.qr || (function () {
+    var s = document.currentScript && document.currentScript.src;
+    return s ? s.replace(/[^/]*$/, 'wechat-qr.png') : 'wechat-qr.png';
+  })();
 
   var ua = navigator.userAgent || '';
   var IN_WX = /MicroMessenger/i.test(ua) || /wxwork/i.test(ua);
@@ -138,7 +157,16 @@
       '#qq-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);background:#22303a;color:#eef3f2;',
       'font-size:13px;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:all .22s;z-index:1005;max-width:86vw;text-align:center}',
       '#qq-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}',
-      '.iconbtn.qq{font-size:12px;font-weight:700;letter-spacing:.2px}',
+      // ---- 顶栏下拉（复用站点 .share-menu / .sm-item 那套外观，只补差异部分）----
+      '.qq-wrap{flex:0 0 auto;position:relative}',
+      '.qq-menu{width:264px}',
+      '.qq-menu .sm-item{text-decoration:none!important}',
+      '.iconbtn.qq[aria-expanded="true"]{border-color:var(--teal);color:var(--teal);background:var(--paper2)}',
+      '.qm-lead{margin:5px 9px 7px;font-size:12.5px;line-height:1.65;color:var(--ink2)}',
+      '.qm-qrbox img{display:block;width:100%;max-width:232px;height:auto;margin:0 auto;border-radius:8px;',
+      'box-shadow:0 0 0 1px var(--line)}',
+      '.qm-qrbox .qr-hint{margin:9px 2px 4px}',
+      '@media(max-width:420px){.qq-menu{width:min(300px,calc(100vw - 30px))}}',
       '@media(max-width:560px){.qq-card{flex-direction:column;gap:11px;padding:15px 16px}.qq-ic{width:38px;height:38px}}'
     ].join('');
     var st = document.createElement('style');
@@ -247,34 +275,128 @@
     slot.appendChild(card);
   }
 
-  /* ---------------------------------------------------------- 顶栏快捷键 */
+  /* ---------------------------------------------------------- 顶栏下拉入口 */
 
-  function buildTopbarIcon() {
+  function buildTopbarEntry() {
     var themeBtn = document.getElementById('themebtn');
     var col = themeBtn ? themeBtn.parentNode : null;
-    if (!col || document.getElementById('qqtop')) return;
+    if (!col || document.getElementById('qqwrap')) return;
 
-    var a = document.createElement(IN_WX ? 'button' : 'a');
-    a.id = 'qqtop';
-    a.className = 'iconbtn qq';
-    a.setAttribute('aria-label', '读者 QQ 交流群');
+    var wrap = document.createElement('div');
+    wrap.className = 'qq-wrap';
+    wrap.id = 'qqwrap';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'qqbtn';
+    btn.className = 'iconbtn qq';
+    btn.setAttribute('aria-haspopup', 'menu');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-label', '联系作者：加 QQ 群 / 加微信');
+    btn.title = '联系作者 · QQ 群 / 微信';
+    btn.innerHTML = svgQQ(18);
+
+    var menu = document.createElement('div');
+    menu.id = 'qqmenu';
+    menu.className = 'share-menu qq-menu';
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', '联系作者');
+    // 批注层看到 data-anno-skip 会整棵子树跳过，免得把引导文案当成正文来划线
+    menu.setAttribute('data-anno-skip', '');
+
+    /* ---- 展开 / 收起 ---- */
+    var isOpen = false;
+    var qrBox, wxRow;
+    function setOpen(v) {
+      isOpen = v;
+      menu.classList.toggle('open', v);
+      btn.setAttribute('aria-expanded', v ? 'true' : 'false');
+      if (!v && qrBox) {
+        qrBox.hidden = true;
+        wxRow.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    /* ---- 顶部引导文案 ---- */
+    var lead = document.createElement('p');
+    lead.className = 'qm-lead';
+    lead.textContent = '读完想聊两句？加 QQ 群或加作者微信交流都行 —— 指南的增补与数据更新会先在群里发。';
+    menu.appendChild(lead);
+
+    /* ---- ① QQ 群：整行就是「QQ：群号」这行文字，点整行才跳转 ---- */
+    var qqRow;
     if (IN_WX) {
-      a.type = 'button';
-      a.title = '复制读者群号 ' + GROUP_NO;
-      a.textContent = 'QQ';
-      a.addEventListener('click', function () {
-        copyText(GROUP_NO, '已复制群号 ' + GROUP_NO + ' —— 打开 QQ 搜索加入');
+      // 微信内置浏览器拦 QQ 域名，跳过去只会是"已停止访问" —— 换成复制群号
+      qqRow = document.createElement('button');
+      qqRow.type = 'button';
+      qqRow.addEventListener('click', function () {
+        setOpen(false);
+        copyText(GROUP_NO, '已复制群号 ' + GROUP_NO + ' —— 打开 QQ，搜「加群」粘贴即可');
       });
     } else {
-      a.href = JOIN_URL;
-      a.target = '_blank';
-      a.rel = 'noopener nofollow';
-      a.title = '加入读者 QQ 群 ' + GROUP_NO;
-      a.textContent = 'QQ';
+      qqRow = document.createElement('a');
+      qqRow.href = JOIN_URL;
+      qqRow.target = '_blank';
+      qqRow.rel = 'noopener nofollow';
+      qqRow.addEventListener('click', function () { setOpen(false); });
     }
-    // 插在 GitHub 图标之前，离主题开关有一点间隔，视觉上是一组"外部入口"
+    qqRow.className = 'sm-item qm-qq';
+    qqRow.setAttribute('role', 'menuitem');
+    qqRow.title = IN_WX ? ('复制群号 ' + GROUP_NO) : ('加入读者 QQ 群 ' + GROUP_NO);
+    qqRow.innerHTML = '<span class="sm-ic">Q</span><span class="sm-tx">QQ：' + GROUP_NO +
+      '<small>' + (IN_WX ? '微信里点这行＝复制群号' : '点这一行加入读者交流群') + '</small></span>';
+    menu.appendChild(qqRow);
+
+    var sep = document.createElement('div');
+    sep.className = 'sm-sep';
+    menu.appendChild(sep);
+
+    /* ---- ② 微信：点这行展开二维码（不做跳转，二维码就显示在菜单里）---- */
+    wxRow = document.createElement('button');
+    wxRow.type = 'button';
+    wxRow.className = 'sm-item qm-wx';
+    wxRow.setAttribute('role', 'menuitem');
+    wxRow.setAttribute('aria-expanded', 'false');
+    wxRow.innerHTML = '<span class="sm-ic">微</span><span class="sm-tx">加作者微信交流' +
+      '<small>扫码加我 · 备注「以日为鉴」</small></span>';
+    menu.appendChild(wxRow);
+
+    qrBox = document.createElement('div');
+    qrBox.className = 'qr-box qm-qrbox';
+    qrBox.hidden = true;
+    qrBox.innerHTML = '<img src="' + QR_SRC + '" alt="作者微信二维码" width="232" height="232">' +
+      '<p class="qr-hint">微信「扫一扫」，或者长按图片识别。用电脑看的话，直接拿手机扫屏幕也行。</p>';
+    menu.appendChild(qrBox);
+
+    wxRow.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var show = qrBox.hidden;
+      qrBox.hidden = !show;
+      wxRow.setAttribute('aria-expanded', show ? 'true' : 'false');
+    });
+
+    /* ---- 开关与关闭时机 ---- */
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      // 分享菜单可能开着，先收掉，免得两个浮层叠一起
+      Array.prototype.forEach.call(document.querySelectorAll('.share-menu.open'), function (m) {
+        if (m !== menu) m.classList.remove('open');
+      });
+      setOpen(!isOpen);
+    });
+    document.addEventListener('click', function (e) {
+      if (isOpen && !wrap.contains(e.target)) setOpen(false);
+    }, true);   // ← 捕获阶段：分享按钮的 onclick 里有 stopPropagation，
+                //   挂在冒泡阶段的话「QQ 开着时点分享」收不掉这个浮层，两个会叠一起
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen) setOpen(false);
+    });
+
+    // 插在 GitHub 图标之前，跟分享键挨着，视觉上都是"对外入口"
     var gh = col.querySelector('.iconbtn.gh');
-    col.insertBefore(a, gh || themeBtn);
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+    col.insertBefore(wrap, gh || themeBtn);
   }
 
   /* ---------------------------------------------------------- 启动 */
@@ -284,7 +406,7 @@
     injectStyle();
     var slot = document.querySelector(SLOT);
     if (slot) buildCard(slot);
-    if (WANT_TOPBAR) buildTopbarIcon();
+    if (WANT_TOPBAR) buildTopbarEntry();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
