@@ -594,6 +594,25 @@
     var vw = window.innerWidth, vh = window.innerHeight;
     var cx = vw - pad - 22;                       // 按钮(44×44)的水平中心
 
+    // 判定"这个元素会不会挡住按钮"：必须是固定/粘性层，而且视觉上不透明。
+    // 全透明的覆盖层（rgba(...,0) 且无背景图/无滤镜/无阴影）不算遮挡 —— 它不挡视线，
+    // 只是某些浏览器扩展会往页面里塞这种整屏透明层，按它来避让会把按钮顶到页面中间。
+    var alphaOf = function (bg) {
+      if (!bg || bg === 'transparent') return 0;
+      if (bg.indexOf('rgb(') === 0) return 1;
+      var i = bg.lastIndexOf(',');
+      if (i < 0) return 1;
+      var a = parseFloat(bg.slice(i + 1));
+      return isNaN(a) ? 1 : a;
+    };
+    var isOpaque = function (c) {
+      if (alphaOf(c.backgroundColor) > 0) return true;
+      if (c.backgroundImage && c.backgroundImage !== 'none') return true;
+      if (c.backdropFilter && c.backdropFilter !== 'none') return true;
+      if (c.boxShadow && c.boxShadow !== 'none') return true;
+      return false;
+    };
+
     var blockedAt = function (y) {
       var stack = document.elementsFromPoint(cx, y) || [];
       // 注意必须扫完整个堆叠，不能只看栈顶 —— 底栏通常是 sticky 容器里面套
@@ -603,17 +622,24 @@
         if (e.id === 'anno-root' || (e.closest && e.closest('#anno-root'))) continue;
         if (e === document.body || e === document.documentElement) return false;
         var c = window.getComputedStyle(e);
-        if (c.position === 'fixed' || c.position === 'sticky') return true;
+        if (c.position !== 'fixed' && c.position !== 'sticky') continue;
+        if (c.display === 'none' || c.visibility === 'hidden' || Number(c.opacity) === 0) continue;
+        if (!isOpaque(c)) continue;
+        return true;
       }
       return false;
     };
 
-    var bottom = pad;
+    // 从右下角往上找第一个"按钮下沿下方没有不透明固定层"的位置。
+    // 整屏都被盖住（理论上不该发生）时退回原位，免得把按钮顶到页面中间。
+    var bottom = pad, found = false;
     for (var k = 0; k < 80; k++) {
       var probe = vh - bottom;                    // 按钮下沿所在的纵坐标
-      if (probe < 8 || !blockedAt(probe)) break;
+      if (probe < 8) break;
+      if (!blockedAt(probe)) { found = true; break; }
       bottom += 6;
     }
+    if (!found) bottom = pad;
     document.documentElement.style.setProperty('--anno-safe-b', bottom + 'px');
   }
 
