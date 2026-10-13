@@ -30,7 +30,7 @@ description: 用《高性价比人生指南·衰退时代补丁包》（在线 m
 curl -fsSL --compressed "https://raw.githubusercontent.com/strangeyu911-tech/mirror-guide/main/skills/recession-life-guide/patches.md"
 ```
 
-要每条背后的完整中日数据、20 余位学者观点和置信度，浅克隆主仓库，读 `index.html`（《以日为鉴》增补版）：
+要每条背后的完整中日数据、学者观点和置信度，浅克隆主仓库，读 `index.html`（《以日为鉴》增补版）：
 
 ```bash
 git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMPDIR:-/tmp}/mrg"

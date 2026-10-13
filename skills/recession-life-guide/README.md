@@ -45,7 +45,7 @@ Invoke-WebRequest "https://raw.githubusercontent.com/strangeyu911-tech/mirror-gu
 ## 语料和完整论证从哪来
 
 - 本目录自带 `patches.md`（41 条，几十 KB），日常问答只查它就够。
-- 每条背后的中日数据、20 余位学者观点、置信度与证伪逻辑在《以日为鉴：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
+- 每条背后的中日数据、学者观点、置信度与证伪逻辑在《以日为鉴：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
 
 ```bash
 git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMPDIR:-/tmp}/mrg"
