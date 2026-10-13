@@ -337,14 +337,17 @@
       '::highlight(anno){background:var(--anno-mark);text-decoration:underline;text-decoration-color:var(--anno-mark-line);text-decoration-thickness:2px;text-underline-offset:3px;}',
       '::highlight(anno-hover2){background:var(--anno-hover);}',
       'body.anno-off ::highlight(anno){background:transparent;text-decoration:none;}',
-      '#anno-root{position:fixed;left:18px;bottom:18px;z-index:70;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;}',
+      // z-index 必须高于站点自身最高层（#progress 999 / #toc 950 / .bottomnav 800），
+      // 否则整块 UI 会被目录栏和底部导航压在下面，读者根本点不到。
+      // 位置用 CSS 变量 --anno-safe-b 承载，由 placeRoot() 实测底部固定栏高度后设定。
+      '#anno-root{position:fixed;right:18px;bottom:var(--anno-safe-b,18px);z-index:1000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;}',
       '#anno-fab{width:44px;height:44px;border-radius:50%;border:1px solid var(--anno-line);background:var(--anno-bg);color:var(--anno-teal);',
       'cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;position:relative;}',
       '#anno-fab:hover{border-color:var(--anno-teal2);}',
       '#anno-fab .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:99px;background:var(--anno-teal);color:#fff;',
       'font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 4px;}',
       '#anno-fab.has .badge{display:flex;}',
-      '#anno-panel{position:absolute;left:0;bottom:54px;width:320px;max-height:min(62vh,520px);overflow:auto;background:var(--anno-bg);',
+      '#anno-panel{position:absolute;right:0;bottom:54px;width:320px;max-height:min(62vh,520px);overflow:auto;background:var(--anno-bg);',
       'border:1px solid var(--anno-line);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.2);padding:13px 14px 15px;}',
       '#anno-panel[hidden]{display:none;}',
       '#anno-panel h4{margin:0 0 3px;font-size:13px;color:var(--anno-teal);font-weight:700;display:flex;align-items:center;gap:7px;}',
@@ -364,11 +367,11 @@
       '.anno-item .mt .del{margin-left:auto;cursor:pointer;}',
       '.anno-item .mt .del:hover{color:#b4553f;}',
       '.anno-empty{font-size:12.5px;color:var(--anno-ink2);text-align:center;padding:18px 6px;line-height:1.8;}',
-      '#anno-toolbar{position:fixed;z-index:80;display:flex;gap:2px;padding:4px;background:#22303a;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.3);}',
+      '#anno-toolbar{position:fixed;z-index:1001;display:flex;gap:2px;padding:4px;background:#22303a;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.3);}',
       '#anno-toolbar[hidden]{display:none;}',
       '#anno-toolbar button{border:0;background:transparent;color:#eef3f2;font-size:13px;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}',
       '#anno-toolbar button:hover{background:rgba(255,255,255,.14);}',
-      '#anno-editor{position:fixed;z-index:85;width:330px;background:var(--anno-bg);border:1px solid var(--anno-line);border-radius:12px;',
+      '#anno-editor{position:fixed;z-index:1002;width:330px;background:var(--anno-bg);border:1px solid var(--anno-line);border-radius:12px;',
       'box-shadow:0 10px 34px rgba(0,0,0,.2);padding:12px;}',
       '#anno-editor[hidden]{display:none;}',
       '#anno-editor .q{font-size:12.5px;color:var(--anno-ink2);border-left:3px solid #c9a24a;padding:2px 0 2px 9px;margin:0 0 9px;max-height:60px;overflow:hidden;}',
@@ -381,11 +384,11 @@
       'font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}',
       '#anno-editor button.p{background:var(--anno-teal);border-color:var(--anno-teal);color:#fff;}',
       '#anno-editor button:disabled{opacity:.45;cursor:not-allowed;}',
-      '#anno-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);background:#22303a;color:#eef3f2;',
-      'font-size:13px;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:all .22s;z-index:90;max-width:86vw;text-align:center;}',
+      '#anno-toast{position:fixed;left:50%;bottom:var(--anno-safe-b,26px);transform:translateX(-50%) translateY(10px);background:#22303a;color:#eef3f2;',
+      'font-size:13px;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:all .22s;z-index:1003;max-width:86vw;text-align:center;}',
       '#anno-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}',
       '#anno-ts-box{display:none;}',
-      '@media (max-width:900px){#anno-root{left:14px;bottom:14px;}#anno-panel{width:min(320px,calc(100vw - 28px));}#anno-editor{width:min(330px,calc(100vw - 24px));}}'
+      '@media (max-width:900px){#anno-root{right:14px;}#anno-panel{width:min(320px,calc(100vw - 28px));}#anno-editor{width:min(330px,calc(100vw - 24px));}}'
     ].join('');
     var st = el('style');
     st.id = 'anno-style';
@@ -581,10 +584,50 @@
 
   /* ========================================================== 启动 */
 
+  /* ---------------------------------------------- 悬浮按钮的落点
+     站点自己有几层不透明的固定/粘性元素：#progress(999)、#toc(950)、div.bottomnav(800)。
+     按钮如果压在它们下面，读者既看不见也点不到；如果只是把 z-index 抬高，又会盖住
+     "下一篇"这类可点区域。折中做法：从右下角往上逐格试，找到第一个"按钮底边之下
+     没有被固定层覆盖"的位置，把偏移写进 --anno-safe-b。 */
+  function placeRoot() {
+    var pad = window.innerWidth <= 900 ? 14 : 18;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var cx = vw - pad - 22;                       // 按钮(44×44)的水平中心
+
+    var blockedAt = function (y) {
+      var stack = document.elementsFromPoint(cx, y) || [];
+      // 注意必须扫完整个堆叠，不能只看栈顶 —— 底栏通常是 sticky 容器里面套
+      // 一堆 position:relative 的链接/按钮，只看栈顶会漏判成"没被挡"。
+      for (var i = 0; i < stack.length; i++) {
+        var e = stack[i];
+        if (e.id === 'anno-root' || (e.closest && e.closest('#anno-root'))) continue;
+        if (e === document.body || e === document.documentElement) return false;
+        var c = window.getComputedStyle(e);
+        if (c.position === 'fixed' || c.position === 'sticky') return true;
+      }
+      return false;
+    };
+
+    var bottom = pad;
+    for (var k = 0; k < 80; k++) {
+      var probe = vh - bottom;                    // 按钮下沿所在的纵坐标
+      if (probe < 8 || !blockedAt(probe)) break;
+      bottom += 6;
+    }
+    document.documentElement.style.setProperty('--anno-safe-b', bottom + 'px');
+  }
+
+  var placeTimer = null;
+  function schedulePlace() {
+    if (placeTimer) clearTimeout(placeTimer);
+    placeTimer = setTimeout(function () { placeTimer = null; placeRoot(); }, 150);
+  }
+
   function init() {
     if (!document.body) return;
     injectStyle();
     buildUI();
+    placeRoot();
     annos = load();
     secIndex = buildIndex();
 
@@ -601,6 +644,8 @@
     document.addEventListener('scroll', hideToolbar, { passive: true });
     window.addEventListener('online', flush);
     window.addEventListener('focus', flush);
+    window.addEventListener('resize', schedulePlace);
+    window.addEventListener('load', schedulePlace);   // 图片/字体落位后底部栏高度可能变
 
     // 仅本地调试时暴露内部状态，线上不挂
     if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) {
