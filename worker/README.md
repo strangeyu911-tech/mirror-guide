@@ -1,6 +1,6 @@
 # 读者批注后端（Cloudflare Worker）
 
-给 <https://mirror.strangeyu.xyz/> 提供批注的存储与转发：读者零账号提交 → 落 D1 → 代发到私有仓库的聚合 issue。
+给 <https://mirror.strangeyu.xyz/> 提供批注的存储与转发：读者零账号提交 → 落 KV → 用维护者的凭据代发到私有仓库的聚合 issue。
 
 ```
 读者浏览器（零 GitHub 账号）
@@ -8,129 +8,127 @@
    ▼
 Worker（本目录）
    ├─ origin 白名单校验
+   ├─ 反自动化：蜜罐字段(hp) + 提交耗时下限(t0/MIN_FILL_MS)
    ├─ 字段校验（长度 / 链接数 / 偏移范围 / 页面白名单）
-   ├─ Turnstile 人机验证
-   ├─ 限流（ip_hash + device_hash：10 条/小时、50 条/天）
-   ├─ 写 D1（annotations）
-   └─ 用维护者的 token 代发 comment ──► 私有仓库 mirror-guide-feedback 的聚合 issue
+   ├─ 限流（ip_hash：10 条/小时、50 条/天，KV 计数器带 TTL）
+   ├─ 写 KV（anno:<id>，24h 幂等去重靠它）
+   ├─ Turnstile 人机验证（可选，未配则跳过）
+   └─ 用维护者的 token 代发 comment ──► 私有仓库 mirror-guide-feedback 的聚合 issue #1
 ```
 
 **所有 comment 的作者都是维护者本人**，读者在 GitHub 上不出场；区分读者看 comment 正文里的「读者」那一行。
 
 ---
 
-## 当前状态
+## 当前状态（2026-10-13 实测）
 
 | 项 | 状态 |
 |---|---|
 | Worker 部署 | ✅ 已上线 `https://anno.strangeyu.xyz` |
-| 健康检查 | ✅ `GET /api/health` → `{"ok":true}` |
+| 健康检查 | ✅ `GET /api/health` → `{"ok":true,"store":"kv","turnstile":false,"github":true}` |
 | 自定义域 | ✅ `anno.strangeyu.xyz` 已绑定 |
-| 私有反馈仓库 | ✅ `strangeyu911-tech/mirror-guide-feedback`，issue #1 已 pin |
-| D1 数据库 | ⏳ 待建（现有 CF token 无 D1 权限） |
-| `GITHUB_TOKEN` | ⏳ 待写入 |
-| `TURNSTILE_SECRET` | ⏳ 待写入（未配置时校验会被跳过，**上线前必须补**） |
+| KV 命名空间 | ✅ `mirror-guide-anno`（id `157f5a2bc56b417e93f5fb09d08cc799`） |
+| 私有反馈仓库 | ✅ `strangeyu911-tech/mirror-guide-feedback`（visibility=private），issue #1 已 pin，4 个标签 `new`/`accepted`/`rejected`/`fixed` |
+| `GITHUB_TOKEN` | ✅ 已写入 secret（用的是本机 `gh auth token`，**不需要另建 PAT**） |
+| `HASH_SALT` | ✅ 已写入 secret |
+| `TURNSTILE_SECRET` | ⚪️ 未配置，`turnstile:false`（不阻塞：蜜罐 + 提交耗时 + 限流已实测生效） |
+| 前端接入 | ✅ `index.html` 底部一行 `<script src="annotate.js" defer></script>` |
+| 单元测试 | ✅ `node test/unit.mjs` → 37 通过 / 0 失败 |
 
----
+### 为什么用 KV 而不是 D1
 
-## 还需要你做的三件事
-
-### ① 给 Cloudflare token 补 D1 权限
-
-去 <https://dash.cloudflare.com/profile/api-tokens> → 找到现有 token（id `d5d5175e722e4f73637e2b284cf566fd`）→ Edit → 权限里加上：
-
-- **Account → D1 → Edit**
-
-保存即可（token 值不变）。或者新建一个 token，把 `CF_TOKEN` 换成新的。
-
-### ② 建 GitHub 细粒度 PAT
-
-<https://github.com/settings/personal-access-tokens/new>
-
-- Token name：随意，如 `mirror-guide-anno`
-- Expiration：**1 年**（到期要换，日历里记一笔）
-- Repository access：**Only select repositories** → 只勾 **`mirror-guide-feedback`**
-- Permissions → Repository permissions → **Issues: Read and write**（其他一律不给）
-- 生成后复制 `github_pat_...`（只显示一次）
-
-### ③ 建 Turnstile widget
-
-<https://dash.cloudflare.com/?to=/:account/turnstile> → Add widget
-
-- Widget name：`mirror-guide-anno`
-- Hostnames：加 `mirror.strangeyu.xyz`
-- Widget Mode：**Invisible**
-- 建完拿两个值：**Site Key**（公开，填到前端）和 **Secret Key**（私密，填到 Worker）
+批注是"写得少、读得极少、只按 id 取"的场景，KV 足够，且省掉建表与迁移。
+更实际的原因：现有 Cloudflare token **没有 D1 权限**（建库返回 401），而 KV 权限本来就有。
+若日后确实要换 D1，改造点在 `worker/src/index.js` 里 `env.KV` 的四处调用。
 
 ---
 
 ## 部署与配置命令
 
-在 `worker/` 目录下执行。先建库、建表：
+在 `worker/` 目录下执行（本机 wrangler 跑不起来，缺 `@cloudflare/workerd-windows-64`，连 `--help` 都崩，所以走 `deploy/deploy.mjs` 直接复刻 CF 原生 API）。
 
 ```bash
-# 建 D1 数据库，记下返回的 uuid
-curl -s -X POST -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" \
-  "https://api.cloudflare.com/client/v4/accounts/320630a19eed9c18dc9371dd71d6f288/d1/database" \
-  -d '{"name":"mirror-guide-anno"}'
+# 部署代码（bindings 带全：KV 绑定 + 全部 vars）
+CF_TOKEN=<token> node deploy/deploy.mjs
 
-# 建表（可重复执行）
-CF_TOKEN=<token> node deploy/deploy.mjs --schema --d1=<database_id>
-```
-
-再部署脚本（带上 D1 绑定）：
-
-```bash
-CF_TOKEN=<token> D1_ID=<database_id> node deploy/deploy.mjs
-```
-
-最后写入 secret：
-
-```bash
+# 只补写 / 轮换 secret
 CF_TOKEN=<token> \
-GITHUB_TOKEN=<github_pat_...> \
-TURNSTILE_SECRET=<turnstile secret> \
+GITHUB_TOKEN=<gh 的 token> \
 HASH_SALT=<随便一串随机字符> \
 node deploy/deploy.mjs --secrets
+# 需要 Turnstile 时再加一行 TURNSTILE_SECRET=<turnstile secret>
+
+# 导出全部批注做备份
+CF_TOKEN=<token> node deploy/deploy.mjs --dump 备份.json
+
+# 换一个 KV 命名空间
+CF_TOKEN=<token> node deploy/deploy.mjs --kv=<namespace_id>
 ```
 
-> `PUT /workers/scripts/{name}` 是**全量替换**，bindings 一次带全；`deploy.mjs` 已经把全部 vars 写在 `VARS` 里，改配置时改那里而不是在后台点。
+> ⚠️ `PUT /workers/scripts/{name}` 是**全量替换**：`bindings` 必须一次带全（KV + 所有 vars），
+> 漏一个就会**静默抹掉**它。`deploy.mjs` 已经把全部 vars 写在 `VARS` 里，改配置改那里，别在后台点。
+
+### 清理 KV（联调后必做）
+
+```bash
+CF_TOKEN_FILE=<token文件路径> node deploy/kv-clean.mjs           # 只列出
+CF_TOKEN_FILE=<token文件路径> node deploy/kv-clean.mjs --apply   # 真删
+```
+
+默认 dry-run。token 只从环境变量读（`CF_TOKEN` 或 `CF_TOKEN_FILE`），**不落盘、不入库**。
 
 ---
 
 ## 验收清单
 
-- [ ] `curl https://anno.strangeyu.xyz/api/health` → `{"ok":true,...,"turnstile":true}`
-- [ ] 页面上划一段字、写批注 → 私有仓库 issue #1 出现新 comment，正文里读者原文在代码块内
-- [ ] 断网提交 → 页面上立即出现批注，面板显示「待发送」；恢复网络后自动补发、变干净
-- [ ] 连发 11 条 → 第 11 条返回 429，面板不再无限重试（退避 10 分钟）
-- [ ] 不带 Turnstile token 直调接口 → 403
-- [ ] 从非白名单 origin 调用 → 403
-- [ ] `mirror-guide` 公开仓库里搜不到任何读者批注内容
+- [x] `curl https://anno.strangeyu.xyz/api/health` → `{"ok":true,...,"store":"kv",...}`
+- [x] 页面上划一段字、写批注 → 私有仓库 issue #1 出现新 comment，正文里读者原文在代码块内
+- [x] 幂等：同 id 重发 → `{"ok":true,"deduped":true}`，不重复落 comment
+- [x] 蜜罐字段填了内容 → 400 `rejected`
+- [x] 提交过快（早于 `MIN_FILL_MS`）→ 400 `too_fast`
+- [x] 正文超长 → 400 `body_too_long`
+- [x] 超过小时限额 → 429（KV 计数改大后实测）
+- [x] 非白名单 origin → 不回 `Access-Control-Allow-Origin`
+- [x] `mirror-guide` 公开仓库里搜不到任何读者批注内容
+- [ ] 不带 Turnstile token 直调接口 → 403（**未启用 Turnstile，此项暂不适用**）
 
 ---
 
 ## 日常操作
 
-**看新反馈**：直接看私有仓库的 issue #1（有 pin），每条 comment 就是一条批注；打完标签 `accepted`/`rejected`，改完标 `fixed`。
+**看新反馈**：直接看私有仓库的 issue #1（有 pin），每条 comment 就是一条批注；
+处理完给 comment 加「已采纳/不采纳」的回复，或在该 issue 上打标签。
 
-**查数据 / 改状态**：
+**查数据**：`CF_TOKEN_FILE=<path> node deploy/kv-clean.mjs` 会列出全部 key（`anno:<id>`）；
+单条内容用 `node deploy/deploy.mjs --dump 备份.json` 整体导出。
 
-```bash
-curl -s -X POST -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" \
-  "https://api.cloudflare.com/client/v4/accounts/320630a19eed9c18dc9371dd71d6f288/d1/database/<database_id>/query" \
-  -d '{"sql":"SELECT id,page,sec,status,created_at,substr(body,1,40) FROM annotations ORDER BY created_at DESC LIMIT 20"}'
-```
-
-**代发失败的补发**：`gh_error IS NOT NULL` 的那些，说明 comment 没发出去，可在 GitHub 侧手动补，或先不管（数据已在库里）。
+**代发失败的补发**：KV 里存着 `gh` 字段记录代发结果；`gh.ok=false` 的那些说明 comment 没发出去，
+数据仍在 KV 里，可手动补到 issue。
 
 ---
 
 ## 本地测试
 
 ```bash
-node test/unit.mjs     # 30 项纯逻辑单测：校验、限流边界、comment 防注入
+node test/unit.mjs     # 37 项纯逻辑单测：fence 围栏递进、validate 全分支、蜜罐与提交耗时、防注入、昵称与联系方式
 ```
+
+---
+
+## 前端接入（annotate.js）
+
+页面只多一行 `<script src="annotate.js" defer></script>`，模块自己注入样式与 UI。
+
+**踩过的两个坑，改前端时别踩回去：**
+
+1. **z-index 必须高于站点自身最高层。** 站点有 `#progress`(999)、`#toc`(950)、`div.bottomnav`(800)，
+   且目录栏与底栏都是**不透明**的。批注层早年用 70~90，结果整个 UI 被目录栏盖住，读者点不到。
+   现在统一 1000/1001/1002/1003。
+2. **悬浮按钮的落点要实测避让。** `placeRoot()` 从右下角逐格往上探，找到第一个"按钮下沿下方
+   没有不透明固定层"的位置，写进 `--anno-safe-b`。判定"遮挡"时必须
+   **扫完整个堆叠**（底栏是 sticky 容器套 relative 链接，只看栈顶会漏判），
+   并且**只认视觉不透明的层**（浏览器扩展常注入 `rgba(0,0,0,0)` 的整屏透明层，
+   按它避让会把按钮顶到页面中间）。
 
 ---
 
@@ -138,5 +136,6 @@ node test/unit.mjs     # 30 项纯逻辑单测：校验、限流边界、comment
 
 1. `GITHUB_TOKEN` 只出现在 Worker secret 里，**任何情况下都不返回给前端**
 2. 读者原文（划中片段与批注正文）必须经 `fence()` 用代码块包裹后才写进 comment —— 否则 `#12` / `fixes #1` / `@某人` / `![](url)` 会被 GitHub 渲染成关联、提及、外链
-3. 数据表不存 IP 原文、不存账号标识；`ip_hash` / `device_hash` 都加 `HASH_SALT` 后再 sha256
+3. 不存 IP 原文、不存账号标识；`ip_hash` 加 `HASH_SALT` 后再 sha256
 4. `ALLOWED_PAGES` 是白名单，别改成通配
+5. `deploy.mjs` / `kv-clean.mjs` 里的 token **只从环境变量读**，别改成读同目录文件（会误提交）
