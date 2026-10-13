@@ -1,6 +1,6 @@
 ---
 name: recession-life-guide
-description: 用《高性价比人生指南·衰退时代补丁包》（在线 mirror.strangeyu.xyz/patch，源码 github.com/strangeyu911-tech/mirror-guide）的 41 条下行周期补丁回答具体人生决策——衰退期要不要提前还贷、考研还是考公、现在能不能买房、空窗期多长、社保养老金怎么交、要不要出海、要不要生孩子。先判当前在情形 A（财政对冲）还是情形 B（对冲不足）、核对五个证伪信号，再把相关补丁条目从 patches.md 查出来，按补丁类型（反转＞升级＞新增＞降级）、证据档（高可信＞中可信＞低可信）和人群贴合度排序，每条注明 P 编号与《以日为鉴》完整论证锚点。触发词：衰退、下行、裁员、失业、空窗、经济不好、提前还贷、考研、考公、编制、买房、租房、应急金、社保、养老金、个人养老金、医保、出海、转行、35 岁、要不要、值不值、该不该、划不划算、怎么选、帮我决定。
+description: 用《高性价比人生指南·衰退时代补丁包》（在线 mirror.strangeyu.xyz/patch，源码 github.com/strangeyu911-tech/mirror-guide）的 41 条下行周期补丁回答具体人生决策——衰退期要不要提前还贷、考研还是考公、现在能不能买房、空窗期多长、社保养老金怎么交、要不要出海、要不要生孩子。先判当前在情形 A（财政对冲）还是情形 B（对冲不足）、核对五个证伪信号，再把相关补丁条目从 patches.md 查出来，按补丁类型（反转＞升级＞新增＞降级）、证据档（高可信＞中可信＞低可信）和人群贴合度排序，每条注明 P 编号与《以日为镜》完整论证锚点。触发词：衰退、下行、裁员、失业、空窗、经济不好、提前还贷、考研、考公、编制、买房、租房、应急金、社保、养老金、个人养老金、医保、出海、转行、35 岁、要不要、值不值、该不该、划不划算、怎么选、帮我决定。
 ---
 
 # 衰退时代人生决策：先定档位、查了补丁再答
@@ -30,7 +30,7 @@ description: 用《高性价比人生指南·衰退时代补丁包》（在线 m
 curl -fsSL --compressed "https://raw.githubusercontent.com/strangeyu911-tech/mirror-guide/main/skills/recession-life-guide/patches.md"
 ```
 
-要每条背后的完整中日数据、学者观点和置信度，浅克隆主仓库，读 `index.html`（《以日为鉴》增补版）：
+要每条背后的完整中日数据、学者观点和置信度，浅克隆主仓库，读 `index.html`（《以日为镜》增补版）：
 
 ```bash
 git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMPDIR:-/tmp}/mrg"

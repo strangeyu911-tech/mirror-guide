@@ -2,7 +2,7 @@
 
 让 AI 助手照《高性价比人生指南·衰退时代补丁包》回答下行周期里的具体问题：**现在要不要提前还贷、考研还是考公、能不能买房、空窗期能拖多久、社保养老金怎么交、要不要出海、要不要生孩子**。
 
-它做的事只有一件：**先判当前在情形 A（政府持续财政对冲）还是情形 B（对冲不足）、核对五个证伪信号，再把相关补丁条目从 `patches.md` 查出来，按补丁类型与证据档排序回答**，每条注明 P 编号和《以日为鉴》完整论证锚点。查不到就说查不到，不凭记忆编数字。
+它做的事只有一件：**先判当前在情形 A（政府持续财政对冲）还是情形 B（对冲不足）、核对五个证伪信号，再把相关补丁条目从 `patches.md` 查出来，按补丁类型与证据档排序回答**，每条注明 P 编号和《以日为镜》完整论证锚点。查不到就说查不到，不凭记忆编数字。
 
 这是 [strangeyu911-tech/mirror-guide](https://github.com/strangeyu911-tech/mirror-guide) 里在线补丁 [《衰退时代补丁包》](https://mirror.strangeyu.xyz/patch) 的配套 skill，也是 HowToLiveBetter 官方 [life-decision-guide](https://github.com/eternity4719/HowToLiveBetter/blob/main/skills/life-decision-guide/README.md) 的**衰退期姊妹篇**——不是替代：跨周期通用的账（疫苗、低钠盐、别担保、急救、营养）请用官方 skill 查原书。
 
@@ -45,7 +45,7 @@ Invoke-WebRequest "https://raw.githubusercontent.com/strangeyu911-tech/mirror-gu
 ## 语料和完整论证从哪来
 
 - 本目录自带 `patches.md`（41 条，几十 KB），日常问答只查它就够。
-- 每条背后的中日数据、学者观点、置信度与证伪逻辑在《以日为鉴：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
+- 每条背后的中日数据、学者观点、置信度与证伪逻辑在《以日为镜：衰退时代普通人生存指南（增补版）》`index.html`，浅克隆主仓库即可读：
 
 ```bash
 git clone --depth 1 https://github.com/strangeyu911-tech/mirror-guide.git "${TMPDIR:-/tmp}/mrg"
