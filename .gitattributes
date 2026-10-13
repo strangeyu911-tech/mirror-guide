@@ -1,0 +1,4 @@
+# 统一以 LF 入库，避免跨平台行尾抖动
+* text=auto eol=lf
+*.png binary
+*.jpg binary
