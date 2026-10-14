@@ -71,15 +71,24 @@ const VARS = {
   ALLOWED_ORIGINS: 'https://mirror.strangeyu.xyz,https://strangeyu911-tech.github.io',
   SITE_BASE: 'https://mirror.strangeyu.xyz/',
   GH_OWNER: 'strangeyu911-tech',
-  GH_REPO: 'mirror-guide-feedback',
+  GH_REPO: 'mirror-guide-feedback', // v2：已转 public，读者可直接点进 issue
   GH_ISSUE: '1',
+  GH_LABEL: 'anno',                 // 用于 GET issues 时过滤出本站批注
   ALLOWED_PAGES: 'index.html,patch.html',
   LIMIT_PER_HOUR: '10',
   LIMIT_PER_DAY: '50',
-  BODY_MIN: '5',
+  LIMIT_READ_PER_MIN: '60',         // v2：公开读路径也要限流
+  BODY_MIN: '15',                   // 认真通道下限
+  BODY_MIN_CASUAL: '1',             // 批注通道：只要非空
   BODY_MAX: '500',
+  FIX_MIN: '2',                     // 「建议改成什么样」必填
+  FIX_MAX: '500',
+  REPLY_MAX: '200',
+  NAME_MAX: '40',
   MAX_LINKS: '2',
   MIN_FILL_MS: '2500',
+  STATUS_TTL_SEC: '600',            // 状态懒刷新缓存（秒）
+  PUBLIC_READ: '1',                 // 置 0 = 一键收回为「仅作者可见」
 };
 
 /* ------------------------------------------------------------ 部署 */
@@ -129,6 +138,7 @@ async function secrets() {
     ['GITHUB_TOKEN', process.env.GITHUB_TOKEN],
     ['TURNSTILE_SECRET', process.env.TURNSTILE_SECRET],
     ['HASH_SALT', process.env.HASH_SALT],
+    ['ADMIN_TOKEN', process.env.ADMIN_TOKEN], // v2：作者视角的删除/标记已处理
   ].filter(([, v]) => v);
 
   if (!list.length) {

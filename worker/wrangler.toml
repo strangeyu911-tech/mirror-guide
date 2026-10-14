@@ -26,10 +26,11 @@ ALLOWED_ORIGINS = "https://mirror.strangeyu.xyz,https://strangeyu911-tech.github
 # 站点基址，用于在 comment 里生成可点链接
 SITE_BASE = "https://mirror.strangeyu.xyz/"
 
-# 接收批注的私有仓库与聚合 issue
+# 接收批注的仓库（v2：已转 public，读者可直接点进 issue）
 GH_OWNER = "strangeyu911-tech"
 GH_REPO = "mirror-guide-feedback"
 GH_ISSUE = "1"
+GH_LABEL = "anno"
 
 # 只允许这两个页面提交批注
 ALLOWED_PAGES = "index.html,patch.html"
@@ -37,10 +38,26 @@ ALLOWED_PAGES = "index.html,patch.html"
 # 限流（按 ip_hash 计数，KV 计数器带 TTL 自动过期）
 LIMIT_PER_HOUR = "10"
 LIMIT_PER_DAY  = "50"
+LIMIT_READ_PER_MIN = "60"   # v2：公开读路径也要限流，防刷 KV 读配额
 
 # 批注正文长度（按码点计，中文友好）
-BODY_MIN = "5"
+#   BODY_MIN 只对「认真的建议」生效；批注通道只要非空（BODY_MIN_CASUAL）
+BODY_MIN = "15"
+BODY_MIN_CASUAL = "1"
 BODY_MAX = "500"
+
+# 「你建议改成什么样」——认真通道必填
+FIX_MIN = "2"
+FIX_MAX = "500"
+
+REPLY_MAX = "200"
+NAME_MAX = "40"
+
+# 状态懒刷新缓存（秒）：读列表时过期才去 GitHub 拉一次 issue 状态
+STATUS_TTL_SEC = "600"
+
+# 置 0 = 一键收回为「仅作者可见」（批注仍可提交，但不再公开渲染）
+PUBLIC_READ = "1"
 
 # 单条最多几个链接（防 SEO 垃圾）
 MAX_LINKS = "2"

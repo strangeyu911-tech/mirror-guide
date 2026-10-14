@@ -1,3 +1,17 @@
+## v2（2026-10-14）：公开可见 + 状态自动回流
+
+相对档 1.5 的三处结构性变化：
+
+1. **批注公开**：反馈仓库已转 public；`GET /api/annos?page=x` 返回该页全部批注（输出走 publicView 字段白名单，ip_hash / contact / reader_id 一律不出）。
+2. **认真通道开独立 issue**：不再聚合到 issue #1 的 comment —— 这是状态回流的前提（聚合 comment 无法表达 per-批注 的关闭状态）。
+3. **状态自动回流（懒刷新）**：读列表时检查 KV 状态缓存（STATUS_TTL_SEC，默认 600s），过期才拉一次 GitHub issue 状态写回。作者在 GitHub 关 issue，网站最迟约 10 分钟自动变「已处理」，无需任何手动操作。需要秒级实时时再加 GitHub Webhook。
+
+管理接口：`POST /api/admin/hide`（header `X-Admin-Token`，secret 里有），支持 `{id,page,hidden}` 与 `{id,page,done}`。AUTHOR 在页面上带 `?admin=<token>` 访问一次即可启用视角（存 localStorage）。
+
+一键收回：`PUBLIC_READ=0` 重新部署即回到「仅作者可见」。
+
+---
+
 # 读者批注后端（Cloudflare Worker）
 
 给 <https://mirror.strangeyu.xyz/> 提供批注的存储与转发：读者零账号提交 → 落 KV → 用维护者的凭据代发到私有仓库的聚合 issue。

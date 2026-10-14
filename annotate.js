@@ -1,5 +1,5 @@
 /**
- * mirror-guide 读者批注层 —— 前端接入模块
+ * mirror-guide 读者批注层 —— 前端接入模块 v2（公开可见版）
  * ------------------------------------------------------------
  * 引入方式（就一行，不改动页面原有结构）：
  *   <script src="annotate.js" defer></script>
@@ -7,34 +7,53 @@
  * 可选的覆盖配置（放在 annotate.js 之前）：
  *   <script>
  *   window.ANNO_CONFIG = {
- *     endpoint: 'https://anno.strangeyu.xyz/api/anno',
+ *     endpoint:     'https://anno.strangeyu.xyz/api/anno',   // 写：提交批注
+ *     listEndpoint:   'https://anno.strangeyu.xyz/api/annos', // 读：这一页的公开批注
+ *     reactEndpoint:'https://anno.strangeyu.xyz/api/react',  // 互动：emoji
+ *     replyEndpoint: 'https://anno.strangeyu.xyz/api/reply',   // 互动：回复
+ *     adminEndpoint:'https://anno.strangeyu.xyz/api/admin/hide',
  *     siteBase: 'https://mirror.strangeyu.xyz/',
  *     page: 'index.html',
  *     turnstileSiteKey: ''
  *   };
  *   </script>
  *
- * 设计要点：
- *   1. 读走本地、写才走网络。批注先落 localStorage 立刻可见，
- *      再异步 POST；失败进待发队列，恢复后自动补发，全程不打断阅读。
- *   2. 高亮走 CSS Custom Highlight API，不改动正文 DOM
- *      —— 因此不影响站点的目录、锚点跳转、scroll spy。
- *   3. 锚点存"章节 id + 章节内文本偏移 + 原文片段 + 前后 40 字上下文"，
- *      正文被改动后靠上下文匹配自愈，三级降级。
- *   4. 私有模式：页面只回显读者自己划过的内容，不展示他人的批注。
+ * v2 相对档 1.5 的变化：
+ *   1. 批注公开：启动时拉一次「这一页的全部批注」，所有人可见、可回应。
+ *   2. 入口改为飞书式：划完字直接出现输入框，不用先选类型。
+ *   3. 「认真的建议」从**就地**升级为**正式弹窗**（类型/15 字下限/改法必填/
+ *      依据/署名）→ 生成独立 GitHub issue。轻批注不碰 GitHub，只落 KV。
+ *   4. 互动：👍有用 / ❤️同感 / 🤔存疑 + 一层回复。
+ *   5. 冷启动治理：没人回应的批注默认折叠，被顶起来才浮出。
+ *
+ * 沿用且不能丢的：
+ *   - 读本地优先、写才走网络；失败进待发队列，恢复自动补发。
+ *   - 高亮走 CSS Custom Highlight API，不改正文 DOM（不影响目录/锚点/scroll spy）。
+ *   - 锚点 = 章节 id + 章节内偏移 + 原文片段 + 前后 40 字上下文，三级降级自愈。
+ *   - z-index 全部 ≥1000，并用 placeRoot() 实测底栏高度避让。
+ *   - 蜜罐 hp / 提交耗时 t0 / 幂等 id。
  */
 
 (function () {
   'use strict';
 
   var CFG = window.ANNO_CONFIG || {};
-  var ENDPOINT = CFG.endpoint || 'https://anno.strangeyu.xyz/api/anno';
   var SITE_BASE = CFG.siteBase || 'https://mirror.strangeyu.xyz/';
-  var PAGE = CFG.page || (location.pathname.split('/').pop() || 'index.html') || 'index.html';
+  var ENDPOINT = CFG.endpoint || 'https://anno.strangeyu.xyz/api/anno';
+  var LIST_EP = CFG.listEndpoint || 'https://anno.strangeyu.xyz/api/annos';
+  var REACT_EP = CFG.reactEndpoint || 'https://anno.strangeyu.xyz/api/react';
+  var REPLY_EP = CFG.replyEndpoint || 'https://anno.strangeyu.xyz/api/reply';
+  var ADMIN_EP = CFG.adminEndpoint || 'https://anno.strangeyu.xyz/api/admin/hide';
   var TS_KEY = CFG.turnstileSiteKey || '';
-  var LS = 'anno-v1:' + PAGE;
+  var PAGE = CFG.page || (location.pathname.split('/').pop() || 'index.html') || 'index.html';
+  var GH_ISSUE_BASE = (CFG.ghIssueBase || 'https://github.com/strangeyu911-tech/mirror-guide-feedback/issues/');
+  var LS = 'anno-v2:' + PAGE;
+  var LS_RC = LS + ':rc';          // 本地记我点过的反应（服务端只给计数）
   var CTX = 40;
   var BODY_MAX = 500;
+  var SERIOUS_MIN = 15;            // 认真通道正文下限
+  var FIX_MIN = 2;                 // 「建议改成什么样」下限
+  var REPLY_MAX = 200;
 
   var SKIP = 'nav#toc, #toc-mask, #progress, script, style, noscript, .fab, .fabgroup, #anno-root';
 
@@ -47,9 +66,12 @@
 
   var SUPPORT = !!(window.CSS && CSS.highlights && window.Highlight);
   var secIndex = null;          // { secs: {id:{el,text,nodes,starts}}, nodeSec: Map, nodeOff: Map }
-  var annos = [];               // 本地批注
+  var annos = [];               // 我本机写的批注（含待发送）
+  var others = [];              // 服务端来的公开批注
+  var myRc = {};                // { annoId: {useful:1, same:1} }
   var showMarks = true;
   var pending = null;           // 当前待提交的选区锚点
+  var isAdmin = false;
 
   /* ================================================================ 工具 */
 
@@ -84,10 +106,20 @@
   function toast(msg, ms) {
     var t = document.getElementById('anno-toast');
     if (!t) return;
-    t.textContent = msg;
+    t.innerHTML = msg;
     t.classList.add('on');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.classList.remove('on'); }, ms || 3000);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, ms || 3200);
+  }
+
+  function cp(s) { return [...String(s)].length; }
+
+  function ago(ts) {
+    var m = Math.max(1, Math.round((Date.now() - ts) / 60000));
+    if (m < 60) return m + ' 分钟前';
+    var h = Math.round(m / 60); if (h < 24) return h + ' 小时前';
+    var d = Math.round(h / 24); if (d < 30) return d + ' 天前';
+    return new Date(ts).toISOString().slice(0, 10);
   }
 
   /* ========================================================== 章节索引 */
@@ -261,6 +293,12 @@
   function save() {
     try { localStorage.setItem(LS, JSON.stringify(annos)); } catch (e) { }
   }
+  function loadRc() {
+    try { return JSON.parse(localStorage.getItem(LS_RC) || 'null') || {}; } catch (e) { return {}; }
+  }
+  function saveRc() {
+    try { localStorage.setItem(LS_RC, JSON.stringify(myRc)); } catch (e) { }
+  }
   function deviceId() {
     var k = LS + ':dev', d = localStorage.getItem(k);
     if (!d) {
@@ -276,6 +314,21 @@
     if (!r) { r = shortId(); try { localStorage.setItem(k, r); } catch (e) { } }
     return r;
   }
+
+  /* 管理凭据：只在 URL 带 ?admin=<token> 时启用，并记住到 localStorage，
+       这样之后访问同一页也带着；普通读者永远拿不到这个 token。 */
+  function initAdmin() {
+    var m = location.search.match(/[?&]admin=([^&]+)/);
+    if (m && m[1]) {
+      try { localStorage.setItem('anno-admin-token', decodeURIComponent(m[1])); } catch (e) { }
+      try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { }
+    }
+    var t = '';
+    try { t = localStorage.getItem('anno-admin-token') || ''; } catch (e) { }
+    isAdmin = !!t;
+    return t;
+  }
+  var ADMIN_TOKEN = '';
 
   /* ========================================================== 网络 */
 
@@ -322,39 +375,166 @@
     var a = queue[0];
     var attempt = (a.attempts || 0) + 1;
 
-    turnstileToken().then(function (tok) {
-      return fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: a.id, page: PAGE, sec: a.sec,
-          sel: { start: a.start, end: a.end, exact: a.exact, prefix: a.prefix, suffix: a.suffix },
-          body: a.body, name: a.name || undefined, contact: a.contact || undefined,
-          readerId: readerId(), device: deviceId(), turnstile: tok || undefined,
-          hp: (document.getElementById('anno-hp') || {}).value || '',
-          t0: Math.round(performance.timeOrigin || 0)
-        })
+    turnstileToken()
+      .then(function (tok) {
+        return fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: a.id,
+            page: PAGE,
+            sec: a.sec,
+            type: a.type || 'casual',
+            kind: a.kind || undefined,
+            fix: a.fix || undefined,
+            sel: { start: a.start, end: a.end, exact: a.exact, prefix: a.prefix, suffix: a.suffix },
+            body: a.body,
+            name: a.name || undefined,
+            contact: a.contact || undefined,
+            readerId: readerId(),
+            device: deviceId(),
+            turnstile: tok || undefined,
+            hp: (document.getElementById('anno-hp') || {}).value || '',
+            t0: Math.round(performance.timeOrigin || 0)
+          })
+        });
+      })
+      .then(function (r) {
+        return r.json().then(function (j) { return { status: r.status, j: j }; });
+      })
+      .then(function (res) {
+        if (res.j && res.j.ok) {
+          a.sync = 'sent';
+          a.issue = res.j.issue || null;
+          delete a.retryAt; delete a.lastError;
+        } else if (res.status === 429) {
+          a.retryAt = Date.now() + 10 * 60 * 1000;
+          a.lastError = 'rate_limited';
+        } else {
+          throw new Error((res.j && res.j.error) || ('http_' + res.status));
+        }
+      })
+      .catch(function (e) {
+        a.attempts = attempt;
+        a.lastError = String((e && e.message) || e);
+      })
+      .then(function () {
+        save(); paint(); renderList();
+        flushing = false;
+        setTimeout(flush, 60);
       });
-    }).then(function (r) {
-      return r.json().then(function (j) { return { status: r.status, j: j }; });
-    }).then(function (res) {
-      if (res.j && res.j.ok) {
-        a.sync = 'sent'; delete a.retryAt; delete a.lastError;
-      } else if (res.status === 429) {
-        a.retryAt = Date.now() + 10 * 60 * 1000;
-        a.lastError = 'rate_limited';
-      } else {
-        throw new Error((res.j && res.j.error) || ('http_' + res.status));
-      }
-    }).catch(function (e) {
-      a.attempts = attempt;
-      a.lastError = String(e && e.message || e);
-      a.retryAt = Date.now() + Math.min(30 * 60 * 1000, 15000 * Math.pow(2, Math.min(attempt - 1, 7)));
-    }).then(function () {
-      save(); paint();
-      flushing = false;
-      setTimeout(flush, 60);
-    });
+  }
+
+  /* ------------------------------------------------- 读：公开批注列表 */
+
+  var othersLoaded = false, othersErr = '';
+
+  function fetchOthers() {
+    if (SUPPORT === undefined) { /* 无高亮也能看列表 */ }
+    fetch(LIST_EP + '?page=' + encodeURIComponent(PAGE), { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok && Array.isArray(j.items)) {
+          others = j.items.map(function (it) {
+            return {
+              id: it.id, sec: it.sec, type: it.type, kind: it.kind || null,
+              exact: it.sel_exact, prefix: it.sel_prefix, suffix: it.sel_suffix,
+              start: it.sel_start, end: it.sel_end,
+              body: it.body, fix: it.fix || null, name: it.name || null,
+              status: it.status, reactions: it.reactions || {},
+              replies: it.replies || [], ts: Date.parse(it.created_at) || Date.now(),
+              mine: false
+            };
+          });
+          othersLoaded = true;
+          paint(); renderList();
+        } else {
+          othersErr = (j && j.error) || 'load_failed';
+          renderList();
+        }
+      })
+      .catch(function () { othersErr = 'network_error'; renderList(); });
+  }
+
+  /* ------------------------------------------------- 互动：反应与回复 */
+
+  function sendReact(a, k) {
+    // 还没同步到服务端的批注，点上去了也无处可记 —— 直接说明，别让它静默失败
+    if (a.mine && a.sync !== 'sent') { toast('这条还在同步中，稍后再回应'); return; }
+    var me = myRc[a.id] || (myRc[a.id] = {});
+    var on = !!me[k];
+    // 乐观更新：先动本地计数，网络失败再回滚
+    if (on) { me[k] = 0; a.reactions[k] = Math.max(0, (a.reactions[k] || 1) - 1); }
+    else { me[k] = 1; a.reactions[k] = (a.reactions[k] || 0) + 1; }
+    saveRc(); renderList();
+
+    fetch(REACT_EP, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: a.id, page: PAGE, k: k })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!(j && j.ok)) { // 回滚
+          if (on) { me[k] = 1; a.reactions[k] = (a.reactions[k] || 0) + 1; }
+          else { me[k] = 0; a.reactions[k] = Math.max(0, (a.reactions[k] || 1) - 1); }
+          saveRc(); renderList();
+        } else if (j && typeof j.count === 'number') {
+          a.reactions[k] = j.count; renderList();
+        }
+      })
+      .catch(function () {
+        if (on) { me[k] = 1; a.reactions[k] = (a.reactions[k] || 0) + 1; }
+        else { me[k] = 0; a.reactions[k] = Math.max(0, (a.reactions[k] || 1) - 1); }
+        saveRc(); renderList();
+        toast('没发出去 —— 网络不太顺，稍后再试');
+      });
+  }
+
+  function sendReply(a, text) {
+    var v = String(text || '').trim();
+    if (!v) return;
+    if (cp(v) > REPLY_MAX) { toast('回复太长了'); return; }
+    if (/https?:\/\//i.test(v)) { toast('回复里不能带链接'); return; }
+    if ((a.replies || []).length >= 20) { toast('这条下面已经很热闹了'); return; }
+
+    a.replies = (a.replies || []).concat([{ name: '我', au: false, text: v, ts: Date.now() }]);
+    renderList();
+    fetch(REPLY_EP, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: a.id, page: PAGE, text: v })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!(j && j.ok)) {
+          a.replies = a.replies.filter(function (x) { return !(x.ts && x.text === v); });
+          renderList(); toast('没发出去 —— 网络不太顺，稍后再试');
+        }
+      })
+      .catch(function () {
+        a.replies = a.replies.filter(function (x) { return !(x.ts && x.text === v); });
+        renderList(); toast('没发出去 —— 网络不太顺，稍后再试');
+      });
+  }
+
+  function adminHide(a, hidden) {
+    fetch(ADMIN_EP, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Token': ADMIN_TOKEN },
+      body: JSON.stringify({ id: a.id, page: PAGE, hidden: !!hidden })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) {
+          others = others.filter(function (x) { return x.id !== a.id; });
+          renderList(); paint();
+          toast(hidden ? '已删除 · 这条对所有读者不可见' : '已恢复');
+        } else {
+          toast('操作失败：' + ((j && j.error) || 'unknown'));
+        }
+      })
+      .catch(function () { toast('操作失败：网络错误'); });
   }
 
   /* ========================================================== 绘制 */
@@ -362,15 +542,31 @@
   function paint() {
     if (!SUPPORT) return;
     CSS.highlights.delete('anno');
+    CSS.highlights.delete('anno-ser');
     CSS.highlights.delete('anno-hover2');
     if (!showMarks) return;
-    var hl = new Highlight();
+
+    var mine = new Highlight();
+    var ser = new Highlight();
     annos.forEach(function (a) {
       var r = resolve(a);
       a._ok = !!r;
-      if (r) hl.add(r);
+      if (r) mine.add(r);
     });
-    CSS.highlights.set('anno', hl);
+    others.forEach(function (a) {
+      var r = resolve(a);
+      a._ok = !!r;
+      if (!r) return;
+      if (a.type === 'serious') ser.add(r); else mine.add(r);
+    });
+    CSS.highlights.set('anno', mine);
+    CSS.highlights.set('anno-ser', ser);
+  }
+
+  function score(a) {
+    var n = 0, r = a.reactions || {};
+    ['useful', 'same', 'doubt'].forEach(function (k) { n += (r[k] || 0); });
+    return n + (a.replies || []).length * 1.5;
   }
 
   /* ========================================================== UI */
@@ -378,12 +574,15 @@
   function injectStyle() {
     var css = [
       ':root{--anno-mark:rgba(227,194,107,.45);--anno-mark-line:rgba(160,120,20,.55);--anno-hover:rgba(111,176,173,.42);',
-      '--anno-bg:#fffdf8;--anno-ink:#2e3338;--anno-ink2:#7a7368;--anno-line:#ded6c7;--anno-teal:#24565a;--anno-teal2:#4a8a86;}',
+      '--anno-bg:#fffdf8;--anno-ink:#2e3338;--anno-ink2:#7a7368;--anno-line:#ded6c7;--anno-teal:#24565a;--anno-teal2:#4a8a86;',
+      '--anno-blue:#2f5d8c;--anno-blue-bg:rgba(47,93,140,.12);}',
       '[data-theme="dark"]{--anno-mark:rgba(201,162,74,.30);--anno-mark-line:rgba(240,215,154,.5);--anno-hover:rgba(111,176,173,.28);',
-      '--anno-bg:#1d2124;--anno-ink:#e8e4dc;--anno-ink2:#9a938a;--anno-line:#3a4046;--anno-teal:#8fd0c9;--anno-teal2:#6fb0ad;}',
+      '--anno-bg:#1d2124;--anno-ink:#e8e4dc;--anno-ink2:#9a938a;--anno-line:#3a4046;--anno-teal:#8fd0c9;--anno-teal2:#6fb0ad;',
+      '--anno-blue:#9cc3e8;--anno-blue-bg:rgba(156,195,232,.14);}',
       '::highlight(anno){background:var(--anno-mark);text-decoration:underline;text-decoration-color:var(--anno-mark-line);text-decoration-thickness:2px;text-underline-offset:3px;}',
+      '::highlight(anno-ser){background:var(--anno-blue-bg);text-decoration:underline;text-decoration-color:var(--anno-blue);text-decoration-thickness:2px;text-underline-offset:3px;}',
       '::highlight(anno-hover2){background:var(--anno-hover);}',
-      'body.anno-off ::highlight(anno){background:transparent;text-decoration:none;}',
+      'body.anno-off ::highlight(anno),body.anno-off ::highlight(anno-ser){background:transparent;text-decoration:none;}',
       // z-index 必须高于站点自身最高层（#progress 999 / #toc 950 / .bottomnav 800），
       // 否则整块 UI 会被目录栏和底部导航压在下面，读者根本点不到。
       // 位置用 CSS 变量 --anno-safe-b 承载，由 placeRoot() 实测底部固定栏高度后设定。
@@ -394,7 +593,7 @@
       '#anno-fab .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:99px;background:var(--anno-teal);color:#fff;',
       'font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 4px;}',
       '#anno-fab.has .badge{display:flex;}',
-      '#anno-panel{position:absolute;right:0;bottom:54px;width:320px;max-height:min(62vh,520px);overflow:auto;background:var(--anno-bg);',
+      '#anno-panel{position:absolute;right:0;bottom:54px;width:340px;max-height:min(64vh,560px);overflow:auto;background:var(--anno-bg);',
       'border:1px solid var(--anno-line);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.2);padding:13px 14px 15px;}',
       '#anno-panel[hidden]{display:none;}',
       '#anno-panel h4{margin:0 0 3px;font-size:13px;color:var(--anno-teal);font-weight:700;display:flex;align-items:center;gap:7px;}',
@@ -405,37 +604,86 @@
       '#anno-panel .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;}',
       '#anno-panel .sw[aria-checked="true"] .track{background:var(--anno-teal2);}',
       '#anno-panel .sw[aria-checked="true"] .knob{transform:translateX(14px);}',
-      '.anno-item{border:1px solid var(--anno-line);border-radius:10px;padding:8px 10px;margin-bottom:8px;cursor:pointer;background:transparent;}',
+      '.anno-item{border:1px solid var(--anno-line);border-radius:11px;padding:9px 11px;margin-bottom:9px;cursor:pointer;background:transparent;}',
       '.anno-item:hover{border-color:var(--anno-teal2);}',
-      '.anno-item .ex{font-size:12.5px;color:var(--anno-ink2);margin:0 0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}',
-      '.anno-item .bd{font-size:13px;margin:0 0 5px;line-height:1.6;white-space:pre-wrap;color:var(--anno-ink);}',
-      '.anno-item .mt{font-size:10.5px;color:var(--anno-ink2);display:flex;gap:7px;align-items:center;flex-wrap:wrap;}',
-      '.anno-item .mt .warn{color:#b4553f;font-weight:600;}',
-      '.anno-item .mt .del{margin-left:auto;cursor:pointer;}',
-      '.anno-item .mt .del:hover{color:#b4553f;}',
+      '.anno-item .hd{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}',
+      '.badge{font-size:10.5px;padding:1.5px 7px;border-radius:5px;font-weight:700;line-height:1.5;}',
+      '.badge.ser{background:var(--anno-blue-bg);color:var(--anno-blue);}',
+      '.badge.cas{background:var(--anno-bg);color:var(--anno-ink2);border:1px solid var(--anno-line);}',
+      '.badge.st{background:rgba(201,162,74,.16);color:#8a6d21;}',
+      '.badge.st.done{background:rgba(63,122,69,.14);color:#3f7a45;}',
+      '.badge.au{background:rgba(168,69,59,.12);color:#a8453b;}',
+      '.badge.iss{background:rgba(74,138,134,.14);color:var(--anno-teal);text-decoration:none;}',
+      '.badge.iss:hover{text-decoration:underline;}',
+      '.anno-item.dim{opacity:.6;}',
+      '.foldbar{border:1px dashed var(--anno-line);border-radius:10px;background:rgba(0,0,0,.02);',
+      'padding:8px 11px;font-size:11.5px;color:var(--anno-ink2);margin-bottom:9px;display:flex;align-items:center;gap:7px;}',
+      '.foldbar button{margin-left:auto;border:0;background:none;color:var(--anno-teal);',
+      'font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;}',
+      '.anno-item .ex{font-size:12.5px;color:var(--anno-ink2);border-left:2px solid #c9a24a;padding:2px 0 2px 8px;margin:0 0 5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}',
+      '.anno-item.ser .ex{border-left-color:var(--anno-blue);}',
+      '.anno-item .bd{font-size:13px;margin:0 0 5px;line-height:1.6;white-space:pre-wrap;color:var(--anno-ink);word-break:break-word;}',
+      '.anno-item .fix{margin:0 0 5px;background:rgba(0,0,0,.035);border-radius:7px;padding:6px 8px;font-size:12px;line-height:1.6;color:var(--anno-ink2);white-space:pre-wrap;word-break:break-word;}',
+      '.anno-item .ft{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}',
+      '.rc{border:1px solid var(--anno-line);background:transparent;border-radius:99px;padding:2.5px 9px;font-size:12px;color:var(--anno-ink2);cursor:pointer;display:inline-flex;gap:4px;align-items:center;font-family:inherit;line-height:1.6;}',
+      '.rc:hover{border-color:var(--anno-teal2);}',
+      '.rc.on{background:rgba(201,162,74,.16);border-color:#c9a24a;color:#8a6d21;font-weight:600;}',
+      '.lnk{border:0;background:none;color:var(--anno-ink2);font-size:11.5px;cursor:pointer;font-family:inherit;padding:2px 3px;}',
+      '.lnk:hover{color:var(--anno-teal);}',
+      '.lnk.danger:hover{color:#a8453b;}',
+      '.anno-item .nm{font-size:10.5px;color:var(--anno-ink2);margin-left:auto;}',
+      '.replys{margin-top:7px;border-top:1px dashed var(--anno-line);padding-top:7px;display:flex;flex-direction:column;gap:5px;}',
+      '.rp{font-size:12.5px;line-height:1.6;display:flex;gap:5px;}',
+      '.rp .rn{color:var(--anno-teal2);font-weight:600;flex:0 0 auto;}',
+      '.rp .rn.au{color:var(--anno-red,#a8453b);}',
+      '.rp .rt{flex:1;min-width:0;word-break:break-word;}',
+      '.rpbox{display:flex;gap:6px;margin-top:7px;}',
+      '.rpbox input{flex:1;border:1px solid var(--anno-line);border-radius:8px;padding:5px 9px;font-size:12.5px;background:var(--anno-bg);color:var(--anno-ink);outline:none;font-family:inherit;min-width:0;}',
+      '.rpbox input:focus{border-color:var(--anno-teal2);}',
+      '.rpbox button{border:1px solid var(--anno-line);background:transparent;color:var(--anno-ink2);border-radius:8px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;}',
+      '.rpbox button:hover{border-color:var(--anno-teal2);color:var(--anno-teal);}',
       '.anno-empty{font-size:12.5px;color:var(--anno-ink2);text-align:center;padding:18px 6px;line-height:1.8;}',
       '#anno-toolbar{position:fixed;z-index:1001;display:flex;gap:2px;padding:4px;background:#22303a;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.3);}',
       '#anno-toolbar[hidden]{display:none;}',
       '#anno-toolbar button{border:0;background:transparent;color:#eef3f2;font-size:13px;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}',
       '#anno-toolbar button:hover{background:rgba(255,255,255,.14);}',
-      '#anno-editor{position:fixed;z-index:1002;width:330px;background:var(--anno-bg);border:1px solid var(--anno-line);border-radius:12px;',
-      'box-shadow:0 10px 34px rgba(0,0,0,.2);padding:12px;}',
+      /* 正式表单（认真通道）—— 比就地输入框更郑重，这是刻意的 */
+      '#anno-editor{position:fixed;z-index:1002;width:min(520px,calc(100vw - 24px));background:var(--anno-bg);border:1px solid var(--anno-line);',
+      'border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.24);padding:0;overflow:hidden;}',
       '#anno-editor[hidden]{display:none;}',
-      '#anno-editor .q{font-size:12.5px;color:var(--anno-ink2);border-left:3px solid #c9a24a;padding:2px 0 2px 9px;margin:0 0 9px;max-height:60px;overflow:hidden;}',
-      '#anno-editor textarea{width:100%;min-height:78px;resize:vertical;border:1px solid var(--anno-line);border-radius:8px;padding:9px 10px;',
-      'font-size:14px;font-family:inherit;line-height:1.65;background:var(--anno-bg);color:var(--anno-ink);outline:none;box-sizing:border-box;}',
-      '#anno-editor textarea:focus{border-color:var(--anno-teal2);}',
-      '#anno-editor .row{display:flex;align-items:center;gap:8px;margin-top:9px;}',
-      '#anno-editor .hint{font-size:11px;color:var(--anno-ink2);flex:1;line-height:1.5;}',
-      '#anno-editor button{border:1px solid var(--anno-line);background:transparent;color:var(--anno-ink);border-radius:8px;padding:5px 12px;',
-      'font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}',
-      '#anno-editor button.p{background:var(--anno-teal);border-color:var(--anno-teal);color:#fff;}',
-      '#anno-editor button:disabled{opacity:.45;cursor:not-allowed;}',
+      /* 正式表单居中 + 遮罩：郑重感的一部分 */
+      '#anno-mask{position:fixed;inset:0;background:rgba(46,51,56,.34);z-index:1002;}',
+      '#anno-editor.modal-center{z-index:1003;left:50%;top:50%;transform:translate(-50%,-50%);}',
+      '.ae-hd{padding:14px 17px 11px;border-bottom:1px solid var(--anno-line);display:flex;align-items:center;gap:9px;}',
+      '.ae-hd .ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--anno-blue-bg);color:var(--anno-blue);flex:0 0 auto;}',
+      '.ae-hd h5{margin:0;font-size:15px;color:var(--anno-ink);font-weight:700;}',
+      '.ae-hd .x{margin-left:auto;border:0;background:none;font-size:19px;color:var(--anno-ink2);cursor:pointer;line-height:1;padding:0 2px;font-family:inherit;}',
+      '.ae-bd{padding:13px 17px;}',
+      '.ae-bd label{display:block;font-size:12.5px;color:var(--anno-ink);font-weight:600;margin:0 0 5px;}',
+      '.ae-bd .req{color:#a8453b;font-size:11px;font-weight:400;}',
+      '.ae-bd .opt{color:var(--anno-ink2);font-size:11px;font-weight:400;}',
+      '.ae-q{background:rgba(0,0,0,.03);border-left:2px solid var(--anno-blue);border-radius:0 7px 7px 0;padding:7px 10px;font-family:"Songti SC",Georgia,serif;font-size:13px;color:var(--anno-ink2);line-height:1.7;margin-bottom:12px;max-height:66px;overflow:hidden;}',
+      '.ae-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}',
+      '.chip{border:1px solid var(--anno-line);background:transparent;border-radius:99px;padding:4px 12px;font-size:12.5px;color:var(--anno-ink2);cursor:pointer;font-family:inherit;}',
+      '.chip.on{background:var(--anno-blue);border-color:var(--anno-blue);color:#fff;font-weight:600;}',
+      '.ae-ta{width:100%;min-height:70px;resize:vertical;border:1px solid var(--anno-line);border-radius:9px;padding:9px 11px;',
+      'font-size:13.5px;font-family:inherit;line-height:1.7;background:var(--anno-bg);color:var(--anno-ink);outline:none;box-sizing:border-box;}',
+      '.ae-ta:focus{border-color:var(--anno-teal2);}',
+      '.ae-in{width:100%;border:1px solid var(--anno-line);border-radius:9px;padding:8px 11px;font-size:13px;',
+      'font-family:inherit;line-height:1.6;background:var(--anno-bg);color:var(--anno-ink);outline:none;box-sizing:border-box;}',
+      '.ae-in:focus{border-color:var(--anno-teal2);}',
+      '.ae-fld{margin-bottom:12px;}',
+      '.ae-note{background:rgba(47,93,140,.07);border:1px solid rgba(47,93,140,.18);border-radius:9px;padding:8px 11px;',
+      'font-size:11.5px;color:var(--anno-ink2);line-height:1.7;margin-bottom:12px;}',
+      '.ae-ft{padding:11px 17px 14px;border-top:1px solid var(--anno-line);display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.02);}',
+      '.ae-ft .note{font-size:11.5px;color:var(--anno-ink2);line-height:1.6;flex:1;}',
+      '.ae-ft .btn{border:0;background:var(--anno-teal);color:#fff;border-radius:9px;padding:9px 18px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;}',
+      '.ae-ft .btn:disabled{background:#c3bcae;cursor:not-allowed;}',
       '#anno-toast{position:fixed;left:50%;bottom:var(--anno-safe-b,26px);transform:translateX(-50%) translateY(10px);background:#22303a;color:#eef3f2;',
       'font-size:13px;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:all .22s;z-index:1003;max-width:86vw;text-align:center;}',
       '#anno-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}',
       '#anno-ts-box{display:none;}',
-      '@media (max-width:900px){#anno-root{right:14px;}#anno-panel{width:min(320px,calc(100vw - 28px));}#anno-editor{width:min(330px,calc(100vw - 24px));}}'
+      '@media (max-width:900px){#anno-root{right:14px;}#anno-panel{width:min(340px,calc(100vw - 28px));}}'
     ].join('');
     var st = el('style');
     st.id = 'anno-style';
@@ -443,19 +691,400 @@
     document.head.appendChild(st);
   }
 
+  /* ------------------------------------------------ 浮层：就地输入框 */
+
+  var inline = null;             // 当前打开的就地输入浮层
+
+  function closeInline() {
+    if (inline && inline.parentNode) inline.parentNode.removeChild(inline);
+    inline = null;
+    pending = null;
+    var sel = window.getSelection();
+    if (sel) sel.removeAllRanges();
+  }
+
+  /**
+   * 飞书式就地输入：划完字直接在旁边写。
+   * 不先问类型 —— 人写完之前不知道自己在写什么。
+   */
+  function openInline() {
+    // 顺序很要紧：closeInline() 会把 pending 置空，所以先取出来再补回去。
+    var a = pending;
+    closeInline();
+    pending = a;
+    if (!pending) return;
+    var q = a.exact.length > 40 ? a.exact.slice(0, 40) + '…' : a.exact;
+
+    var box = el('div', 'anno-inline');
+    box.innerHTML =
+      '<div class="ai-hd">批注：<q>' + esc(q) + '</q></div>' +
+      '<textarea id="ai-ta" rows="3" maxlength="' + BODY_MAX + '" ' +
+      'placeholder="像在文档边上写字一样，想到什么写什么"></textarea>' +
+      '<div class="ai-row">' +
+      '<span class="ai-note">公开可见 · 默认作者不一定看</span>' +
+      '<button class="ai-cancel">取消</button>' +
+      '<button class="ai-pub" disabled>发布</button>' +
+      '</div>' +
+      '<button class="ai-up">' +
+      '<span class="ic">✎</span>' +
+      '<span class="tx">让作者认真处理 · 生成 issue，作者会回复</span>' +
+      '<span class="ar">正式表单 ▾</span>' +
+      '</button>';
+
+    document.body.appendChild(box);
+    inline = box;
+
+    var ta = box.querySelector('#ai-ta');
+    var pub = box.querySelector('.ai-pub');
+    var cancel = box.querySelector('.ai-cancel');
+    var up = box.querySelector('.ai-up');
+
+    ta.addEventListener('input', function () { pub.disabled = !ta.value.trim(); });
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!pub.disabled) pub.click(); }
+      if (e.key === 'Escape') closeInline();
+    });
+    cancel.addEventListener('click', closeInline);
+    pub.addEventListener('click', function () {
+      var v = ta.value.trim();
+      if (!v) return;
+      commit({ type: 'casual', body: v });
+    });
+    up.addEventListener('click', function () {
+      var v = ta.value.trim();
+      var keep = a;             // 直接从闭包取，closeInline() 之后 pending 就没了
+      closeInline();
+      openEditor(keep, v);      // 正式弹窗，把已写的字带过去
+    });
+
+    /* 落点：贴着选区下方，超界就翻到上方 / 夹到视口内 */
+    var r = a._rect;
+    box.style.visibility = 'hidden';
+    var bw = box.offsetWidth, bh = box.offsetHeight;
+    // .anno-inline 是 absolute（相对文档），而 rect 是视口坐标 —— 必须补 scrollY，
+    // 否则页面一滚，浮层就会飞到别处。
+    var vTop = r.bottom + 8;
+    if (vTop + bh > window.innerHeight - 8) vTop = Math.max(8, r.top - bh - 8);
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - bw - 8));
+    var top = vTop + window.scrollY;
+    box.style.left = left + 'px';
+    box.style.top = top + 'px';
+    box.style.visibility = 'visible';
+    ta.focus();
+  }
+
+  function injectInlineStyle() {
+    var css = [
+      '.anno-inline{position:absolute;z-index:1004;width:min(320px,calc(100vw - 20px));background:var(--anno-bg);',
+      'border:1px solid var(--anno-line);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.22);padding:10px;}',
+      '.anno-inline .ai-hd{font-size:11px;color:var(--anno-ink2);padding:0 2px 7px;border-bottom:1px solid var(--anno-line);margin-bottom:7px;line-height:1.5;}',
+      '.anno-inline .ai-hd q{color:var(--anno-ink2);font-family:"Songti SC",Georgia,serif;}',
+      '.anno-inline textarea{width:100%;resize:vertical;border:1px solid var(--anno-line);border-radius:8px;padding:8px 10px;',
+      'font-size:13.5px;font-family:inherit;line-height:1.65;background:var(--anno-bg);color:var(--anno-ink);outline:none;box-sizing:border-box;}',
+      '.anno-inline textarea:focus{border-color:var(--anno-teal2);}',
+      '.anno-inline .ai-row{display:flex;align-items:center;gap:7px;margin-top:8px;}',
+      '.anno-inline .ai-note{font-size:10.5px;color:var(--anno-ink2);flex:1;line-height:1.5;}',
+      '.anno-inline .ai-row button{border:1px solid var(--anno-line);background:transparent;color:var(--anno-ink2);border-radius:8px;',
+      'padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;}',
+      '.anno-inline .ai-row button:hover{border-color:var(--anno-teal2);color:var(--anno-teal);}',
+      '.anno-inline .ai-pub{background:var(--anno-teal);border-color:var(--anno-teal);color:#fff;font-weight:600;}',
+      '.anno-inline .ai-pub:disabled{background:#c3bcae;border-color:#c3bcae;color:#fff;cursor:not-allowed;}',
+      '.anno-inline .ai-up{margin-top:8px;width:100%;border:1px solid var(--anno-line);background:transparent;',
+      'color:var(--anno-blue);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;font-family:inherit;',
+      'display:flex;align-items:center;gap:7px;text-align:left;line-height:1.5;}',
+      '.anno-inline .ai-up:hover{border-color:var(--anno-blue);background:var(--anno-blue-bg);}',
+      '.anno-inline .ai-up .ic{flex:0 0 auto;font-size:12px;}',
+      '.anno-inline .ai-up .tx{flex:1;min-width:0;}',
+      '.anno-inline .ai-up .ar{flex:0 0 auto;font-size:10.5px;opacity:.7;}'
+    ].join('');
+    var st = el('style');
+    st.id = 'anno-inline-style';
+    st.textContent = css;
+    document.head.appendChild(st);
+  }
+
+  /* ------------------------------------------------ 正式表单（认真通道） */
+
+  /**
+   * 认真的建议 / 质疑数据 —— 走正式弹窗。
+   * 仪式感在这里是 feature 不是 bug：它在告诉读者"这条会被认真对待"。
+   */
+  function openEditor(anchor, prefill) {
+    if (!anchor) return;
+    pending = anchor;
+    var q = anchor.exact.length > 90 ? anchor.exact.slice(0, 90) + '…' : anchor.exact;
+
+    var ed = document.getElementById('anno-editor');
+    var kind = 'suggest';
+    var mask = document.getElementById('anno-mask');
+    if (!mask) { mask = el('div'); mask.id = 'anno-mask'; document.body.appendChild(mask); }
+    mask.hidden = false;
+
+    ed.innerHTML =
+      '<div class="ae-hd"><span class="ic">✎</span><h5>认真的建议 / 质疑数据</h5>' +
+      '<button class="x" title="关闭">&times;</button></div>' +
+      '<div class="ae-bd">' +
+      '<div class="ae-q">' + esc(q) + '</div>' +
+      '<div class="ae-note">这条会<b>公开显示</b>给其他读者，同时在 GitHub 生成一个 issue <b>直达作者</b>。' +
+      '请写出「该怎么改」，而不只是说「不对」。</div>' +
+      '<div class="ae-fld"><label>类型</label>' +
+      '<div class="ae-chips">' +
+      '<button class="chip on" data-k="suggest">建议修改</button>' +
+      '<button class="chip" data-k="data">质疑数据</button>' +
+      '<button class="chip" data-k="evidence">补充证据</button>' +
+      '</div></div>' +
+      '<div class="ae-fld"><label>哪里不对 / 可以更好 <span class="req">* 必填，≥' + SERIOUS_MIN + ' 字</span></label>' +
+      '<textarea class="ae-ta" id="ae-body" rows="3" maxlength="' + BODY_MAX + '" ' +
+      'placeholder="说清楚：是哪一句话、哪个数字，问题在哪"></textarea></div>' +
+      '<div class="ae-fld"><label>你建议改成什么样 / 正确数字应该是多少 <span class="req">* 必填</span></label>' +
+      '<textarea class="ae-ta" id="ae-fix" rows="2" maxlength="500" ' +
+      'placeholder="这一栏是认真通道的门槛 —— 写不出改法的话，退回普通批注也没关系"></textarea></div>' +
+      '<div class="ae-fld"><label>依据或来源 <span class="opt">选填 · 填了作者处理会快很多</span></label>' +
+      '<input class="ae-in" id="ae-src" type="text" maxlength="200" placeholder="报告名 / 链接 / 你自己的口径"></div>' +
+      '<div class="ae-fld"><label>署名 <span class="opt">选填</span></label>' +
+      '<input class="ae-in" id="ae-name" type="text" maxlength="40" placeholder="留空则为「匿名读者」"></div>' +
+      '</div>' +
+      '<div class="ae-ft"><div class="note">提交后生成 issue，<b>编号会回写在这条批注上</b>；' +
+      '你在 GitHub 处理完，页面最迟约 10 分钟自动同步为「已处理」。</div>' +
+      '<button class="btn" id="ae-save" disabled>提交给作者</button></div>';
+
+    ed.hidden = false;
+    ed.style.left = '';
+    ed.style.top = '';
+    ed.classList.add('modal-center');
+
+    var body = ed.querySelector('#ae-body');
+    var fix = ed.querySelector('#ae-fix');
+    var src = ed.querySelector('#ae-src');
+    var nm = ed.querySelector('#ae-name');
+    var save = ed.querySelector('#ae-save');
+    if (prefill) body.value = prefill;
+
+    function check() {
+      var nb = cp(body.value.trim());
+      var nf = cp(fix.value.trim());
+      save.disabled = !(nb >= SERIOUS_MIN && nf >= FIX_MIN);
+    }
+    body.addEventListener('input', check);
+    fix.addEventListener('input', check);
+    ed.querySelectorAll('.chip').forEach(function (c) {
+      c.addEventListener('click', function () {
+        ed.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
+        c.classList.add('on');
+        kind = c.getAttribute('data-k');
+      });
+    });
+    ed.querySelector('.x').addEventListener('click', function () { ed.hidden = true; document.getElementById('anno-mask').hidden = true; });
+    save.addEventListener('click', function () {
+      var fx = fix.value.trim();
+      var s = src.value.trim();
+      commit({
+        type: 'serious', kind: kind, body: body.value.trim(),
+        fix: fx + (s ? '\n依据：' + s : ''), name: nm.value.trim() || null
+      });
+      ed.hidden = true; document.getElementById('anno-mask').hidden = true;
+    });
+    check();
+    body.focus();
+  }
+
+  /* ------------------------------------------------------------ 提交 */
+
+  function commit(o) {
+    var a = {
+      id: uid(), sec: pending.sec, start: pending.start, end: pending.end,
+      exact: pending.exact, prefix: pending.prefix, suffix: pending.suffix,
+      type: o.type || 'casual', kind: o.kind || null, fix: o.fix || null,
+      body: o.body, name: o.name || null, ts: Date.now(), sync: 'pending'
+    };
+    annos.push(a);
+    save();
+    if (!showMarks) setShow(true);
+    paint(); renderList();
+    flush();
+    toast(o.type === 'serious'
+      ? '已提交 · 正在生成 issue，编号稍后回写'
+      : '批注已发布 · 公开可见');
+    pending = null;
+  }
+
+  /* ------------------------------------------------ 侧栏渲染 */
+
+  var RC = [
+    { k: 'useful', e: '👍', t: '有用' },
+    { k: 'same', e: '❤️', t: '同感' },
+    { k: 'doubt', e: '🤔', t: '存疑' }
+  ];
+
+  function unify() {
+    var mineIds = {};
+    others.forEach(function (o) { mineIds[o.id] = 1; });
+    var out = others.slice();
+    annos.forEach(function (a) {
+      if (mineIds[a.id]) return;               // 服务端已收录，不重复显示
+      out.push({
+        id: a.id, sec: a.sec, type: a.type || 'casual', kind: a.kind || null,
+        exact: a.exact, prefix: a.prefix, suffix: a.suffix, start: a.start, end: a.end,
+        body: a.body, fix: a.fix || null, name: a.name || null,
+        status: 'open', reactions: { useful: 0, same: 0, doubt: 0 },
+        replies: [], ts: a.ts, mine: true, sync: a.sync
+      });
+    });
+    return out;
+  }
+
+  function kindLabel(a) {
+    if (a.type !== 'serious') return '批注';
+    return { suggest: '建议修改', data: '质疑数据', evidence: '补充证据' }[a.kind] || '建议修改';
+  }
+
+  function renderList() {
+    var list = document.getElementById('anno-list');
+    if (!list) return;
+
+    var all = unify().slice().sort(function (x, y) {
+      var d = score(y) - score(x);
+      return d !== 0 ? d : y.ts - x.ts;
+    });
+    var live = all.filter(function (a) { return !a._stale && resolve(a); });
+    var shown = live.filter(function (a) { return score(a) > 0; });
+    var quiet = live.filter(function (a) { return score(a) === 0; });
+
+    document.getElementById('anno-cnt').textContent = all.length ? '/ ' + all.length + ' 条' : '';
+    var fab = document.getElementById('anno-fab');
+    fab.classList.toggle('has', all.length > 0);
+    document.getElementById('anno-badge').textContent = all.length;
+
+    if (!all.length) {
+      list.innerHTML = '<div class="anno-empty">这一页还没有批注。<br>选中正文里的一句话就能写 ——<br>不用登录。</div>';
+      return;
+    }
+
+    var h = '';
+    shown.forEach(function (a) { h += cardHTML(a, false); });
+    if (quiet.length) {
+      h += '<div class="foldbar" id="anno-fold">🕓 还有 ' + quiet.length +
+           ' 条批注还没有人回应<button data-unfold>展开看看</button></div>';
+      h += '<div id="anno-quiet" style="display:none">';
+      quiet.forEach(function (a) { h += cardHTML(a, true); });
+      h += '</div>';
+    }
+    list.innerHTML = h;
+  }
+
+  function cardHTML(a, quiet) {
+    var me = myRc[a.id] || {};
+    var ser = a.type === 'serious';
+    var st = '';
+    if (a.status === 'done') st = '<span class="badge st done">已处理</span>';
+    else if (a.status === 'ack') st = '<span class="badge st">作者已回应</span>';
+
+    var h = '<div class="anno-item' + (ser ? ' ser' : '') + (quiet ? ' dim' : '') +
+            '" data-id="' + esc(a.id) + '">';
+    h += '<div class="hd">';
+    h += ser
+      ? '<span class="badge ser">' + esc(kindLabel(a)) + '</span>' +
+        (a.issue ? '<a class="badge iss" href="' + esc(GH_ISSUE_BASE + a.issue) +
+          '" target="_blank" rel="noopener">issue #' + esc(a.issue) + '</a>' : '') + st
+      : '<span class="badge cas">批注</span>';
+    h += '<span class="nm">' + esc(a.name || (a.mine ? '我' : '匿名读者')) + ' · ' + esc(ago(a.ts)) + '</span>';
+    h += '</div>';
+
+    if (!resolve(a)) {
+      h += '<p class="ex" style="color:#a8453b">⚠ 原文已修改，这条批注的锚点失效了</p>';
+    } else {
+      h += '<p class="ex">' + esc(a.exact) + '</p>';
+    }
+    h += '<p class="bd">' + esc(a.body) + '</p>';
+    if (a.fix) h += '<p class="fix"><b>建议改成：</b>' + esc(a.fix) + '</p>';
+
+    h += '<div class="ft">';
+    RC.forEach(function (r) {
+      var n = (a.reactions && a.reactions[r.k]) || 0;
+      h += '<button class="rc' + (me[r.k] ? ' on' : '') + '" data-rc="' + r.k + '">' +
+           r.e + ' ' + r.t + (n ? ' <span>' + n + '</span>' : '') + '</button>';
+    });
+    h += '<button class="lnk" data-reply>回复</button>';
+    if (a.mine && a.sync !== 'sent') {
+      h += '<button class="lnk danger" data-del>删除</button>';
+    }
+    if (isAdmin && !a.mine) {
+      h += '<button class="lnk danger" data-hide>删除</button>';
+      if (ser && a.status !== 'done') h += '<button class="lnk" data-done>标记已处理</button>';
+    }
+    if (a.mine && a.sync && a.sync !== 'sent') h += '<span class="lnk">待同步</span>';
+    h += '</div>';
+
+    if ((a.replies || []).length) {
+      h += '<div class="replys">';
+      a.replies.forEach(function (r) {
+        h += '<div class="rp"><span class="rn' + (r.au ? ' au' : '') + '">' + esc(r.name) +
+             '</span><span class="rt">' + esc(r.text) + '</span></div>';
+      });
+      h += '</div>';
+    }
+    h += '<div class="rpbox" style="display:none"><input type="text" maxlength="' + REPLY_MAX +
+         '" placeholder="回复这条批注（只一层）"><button data-send>发送</button></div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ========================================================== 交互 */
+
+  function fabClick() {
+    var p = document.getElementById('anno-panel');
+    p.hidden = !p.hidden;
+    if (!p.hidden) renderList();
+  }
+
+  function onSelect(e) {
+    if (e && e.target && e.target.closest && e.target.closest('#anno-toolbar, #anno-editor, #anno-root, .anno-inline')) return;
+    setTimeout(function () {
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) { hideToolbar(); return; }
+      var r = sel.getRangeAt(0);
+      var a = anchorFromRange(r);
+      if (!a) { hideToolbar(); return; }
+      a._rect = r.getBoundingClientRect();
+      pending = a;
+      if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
+        // 触屏：先给一个按钮，点了才展开输入框，免得键盘和浮层抢位置
+        showToolbar(r);
+      } else {
+        openInline();
+      }
+    }, 10);
+  }
+
+  function showToolbar(r) {
+    var tb = document.getElementById('anno-toolbar');
+    tb.hidden = false;
+    var w = tb.offsetWidth, h = tb.offsetHeight;
+    var left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8));
+    var top = r.top - h - 8;
+    if (top < 8) top = r.bottom + 8;
+    tb.style.left = left + 'px';
+    tb.style.top = top + 'px';
+  }
+
+  function hideToolbar() {
+    var t = document.getElementById('anno-toolbar');
+    if (t) t.hidden = true;
+  }
+
   function buildUI() {
     var root = el('div');
     root.id = 'anno-root';
     root.innerHTML =
-      '<button id="anno-fab" title="我的批注">' +
+      '<button id="anno-fab" title="这一页的批注">' +
       '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-5 4z"/></svg>' +
       '<span class="badge" id="anno-badge">0</span></button>' +
       '<div id="anno-panel" hidden>' +
-      '<h4>我的批注 <span id="anno-cnt" style="font-size:11px;font-weight:400;opacity:.7"></span></h4>' +
-      '<p class="sub">选中正文任意一句就能划线写批注。<b>只有作者能看到你写的内容</b>，页面只回显你自己划过的。</p>' +
+      '<h4>这一页的批注 <span id="anno-cnt" style="font-size:11px;font-weight:400;opacity:.7"></span></h4>' +
+      '<p class="sub">选中正文任意一句就能划线写批注。<b>所有人的批注互相可见</b>，可以直接回应。</p>' +
       '<label class="sw" id="anno-sw" role="switch" aria-checked="true" tabindex="0">' +
-      '<span class="track"><span class="knob"></span></span><span id="anno-sw-label">显示我的批注</span></label>' +
+      '<span class="track"><span class="knob"></span></span><span id="anno-sw-label">显示批注划线</span></label>' +
       '<div id="anno-list"></div>' +
       '</div>';
     document.body.appendChild(root);
@@ -467,23 +1096,12 @@
 
     var ed = el('div');
     ed.id = 'anno-editor'; ed.hidden = true;
-    ed.innerHTML =
-      '<p class="q" id="anno-q"></p>' +
-      '<textarea id="anno-text" maxlength="' + BODY_MAX + '" placeholder="这里哪里写得不对、不清楚，或者你有反例？"></textarea>' +
-      '<input id="anno-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" ' +
-      'style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">' +
-      '<div class="row"><span class="hint">匿名提交 · 不收集账号</span>' +
-      '<button id="anno-cancel">取消</button><button class="p" id="anno-save">提交</button></div>';
     document.body.appendChild(ed);
 
     var ts = el('div', 'toast'); ts.id = 'anno-toast';
     document.body.appendChild(ts);
 
-    document.getElementById('anno-fab').addEventListener('click', function () {
-      var p = document.getElementById('anno-panel');
-      p.hidden = !p.hidden;
-      if (!p.hidden) renderList();
-    });
+    document.getElementById('anno-fab').addEventListener('click', fabClick);
 
     var sw = document.getElementById('anno-sw');
     sw.addEventListener('click', function () { setShow(!showMarks); });
@@ -493,74 +1111,37 @@
 
     tb.addEventListener('mousedown', function (e) { e.preventDefault(); });
     tb.addEventListener('click', function (e) {
-      if (e.target.dataset.act === 'comment') openEditor();
+      if (e.target.dataset.act === 'comment') { hideToolbar(); openInline(); }
     });
 
-    document.getElementById('anno-cancel').addEventListener('click', closeEditor);
-    document.getElementById('anno-save').addEventListener('click', function () {
-      var ta = document.getElementById('anno-text');
-      var v = ta.value.trim();
-      if (!v) { ta.focus(); return; }
-      if ([...v].length < 5) { toast('批注太短了，再多写几个字'); ta.focus(); return; }
-      commit(v);
+    document.addEventListener('mousedown', function (e) {
+      if (inline && !inline.contains(e.target)) closeInline();
     });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeInline(); var ed2 = document.getElementById('anno-editor'); if (ed2) ed2.hidden = true; }
+    });
+
+    injectInlineStyle();
   }
 
-  function renderList() {
-    var list = document.getElementById('anno-list');
-    if (!list) return;
-    document.getElementById('anno-cnt').textContent = annos.length ? '/ ' + annos.length + ' 条' : '';
-    var fab = document.getElementById('anno-fab');
-    fab.classList.toggle('has', annos.length > 0);
-    document.getElementById('anno-badge').textContent = annos.length;
-
-    if (!annos.length) {
-      list.innerHTML = '<div class="anno-empty">还没有批注。<br>选中正文里的任意一句话试试 ——<br>不用登录，直接就能划。</div>';
-      return;
-    }
-    list.innerHTML = '';
-    annos.slice().sort(function (x, y) { return y.ts - x.ts; }).forEach(function (a) {
-      var ok = !!resolve(a);
-      var it = el('div', 'anno-item');
-      var syncTxt = a.sync === 'sent' ? '' : '<span class="warn">待发送</span>';
-      it.innerHTML =
-        '<p class="ex">' + esc(a.exact) + '</p>' +
-        '<p class="bd">' + esc(a.body) + '</p>' +
-        '<div class="mt"><span title="' + esc(secLabel(a.sec)) + '">' + esc(secLabel(a.sec)) + '</span>' + syncTxt +
-        (ok ? '' : '<span class="warn">待重定位</span>') +
-        '<span class="del" data-del="' + a.id + '">删除</span></div>';
-      it.addEventListener('mouseenter', function () { hover(a, true); });
-      it.addEventListener('mouseleave', function () { hover(a, false); });
-      it.addEventListener('click', function (e) {
-        if (e.target.dataset.del) { remove(a.id); return; }
-        var r = resolve(a);
-        if (r) {
-          var box = r.getBoundingClientRect();
-          // 补丁页有筛选：被筛掉的卡片是 display:none，这时 getBoundingClientRect
-          // 全是 0，照着跳会跳到页面顶部 —— 不如直接说清为什么跳不过去。
-          if (!box.width && !box.height) {
-            toast('这条现在被筛选条件藏起来了 —— 先点「清空筛选」，再点它');
-            return;
-          }
-          window.scrollTo({ top: window.pageYOffset + box.top - window.innerHeight / 2, behavior: 'smooth' });
-        }
-      });
-      list.appendChild(it);
-    });
+  /* 只删本机记录：不碰服务端，也不影响别人看到的 */
+  function removeLocal(id) {
+    annos = annos.filter(function (a) { return a.id !== id; });
+    save(); paint(); renderList();
+    toast('已删除（仅删除你本机的记录）');
   }
 
-  function hover(a, on) {
+  function hoverAnno(id) {
     if (!SUPPORT || !showMarks) return;
-    CSS.highlights.delete('anno-hover2');
-    if (!on) return;
+    var a = findAnno(id);
+    if (!a) return;
     var r = resolve(a);
     if (r) CSS.highlights.set('anno-hover2', new Highlight(r));
   }
 
-  function remove(id) {
-    annos = annos.filter(function (a) { return a.id !== id; });
-    save(); paint(); renderList();
-    toast('已删除（仅删除你本机的记录）');
+  function clearHover() {
+    if (!SUPPORT) return;
+    CSS.highlights.delete('anno-hover2');
   }
 
   function setShow(v) {
@@ -568,74 +1149,161 @@
     var sw = document.getElementById('anno-sw');
     if (sw) sw.setAttribute('aria-checked', v ? 'true' : 'false');
     var lb = document.getElementById('anno-sw-label');
-    if (lb) lb.textContent = v ? '显示我的批注' : '批注已隐藏';
+    if (lb) lb.textContent = v ? '显示批注划线' : '划线已隐藏';
     document.body.classList.toggle('anno-off', !v);
     paint();
   }
 
-  /* ====================================================== 选区与提交 */
+  /* ------------------------------------------- 侧栏事件（委托） */
 
-  function hideToolbar() { var t = document.getElementById('anno-toolbar'); if (t) t.hidden = true; }
+  function onListClick(e) {
+    var fold = e.target.closest('#anno-fold');
+    if (fold) {
+      var z = document.getElementById('anno-quiet');
+      if (z) { z.style.display = 'block'; fold.style.display = 'none'; }
+      return;
+    }
+    var item = e.target.closest('.anno-item');
+    if (!item) return;
+    var id = item.getAttribute('data-id');
+    var a = findAnno(id);
+    if (!a) return;
 
-  function onSelect(e) {
-    if (e && e.target && e.target.closest && e.target.closest('#anno-toolbar, #anno-editor, #anno-root')) return;
-    setTimeout(function () {
-      var sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !sel.rangeCount) { hideToolbar(); return; }
-      var r = sel.getRangeAt(0);
-      var a = anchorFromRange(r);
-      if (!a) { hideToolbar(); return; }
-      pending = a;
-      var tb = document.getElementById('anno-toolbar');
-      tb.hidden = false;
-      var rect = r.getBoundingClientRect();
-      var w = tb.offsetWidth, h = tb.offsetHeight;
-      var left = Math.max(8, Math.min(rect.left + rect.width / 2 - w / 2, window.innerWidth - w - 8));
-      var top = rect.top - h - 8;
-      if (top < 8) top = rect.bottom + 8;
-      tb.style.left = left + 'px';
-      tb.style.top = top + 'px';
-    }, 10);
+    var rc = e.target.closest('[data-rc]');
+    if (rc) { sendReact(a, rc.getAttribute('data-rc')); return; }
+
+    if (e.target.closest('[data-del]')) { removeLocal(a.id); return; }
+    if (e.target.closest('[data-hide]')) { adminHide(a, true); return; }
+    if (e.target.closest('[data-done]')) { adminDone(a); return; }
+    if (e.target.closest('[data-reply]')) {
+      var box = item.querySelector('.rpbox');
+      box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+      if (box.style.display === 'flex') box.querySelector('input').focus();
+      return;
+    }
+    if (e.target.closest('[data-send]')) {
+      var inp = item.querySelector('.rpbox input');
+      sendReply(a, inp.value);
+      return;
+    }
+    gotoAnchor(a);
   }
 
-  function openEditor() {
-    if (!pending) return;
-    var ed = document.getElementById('anno-editor');
-    document.getElementById('anno-q').textContent = '「' + pending.exact.slice(0, 90) + (pending.exact.length > 90 ? '…' : '') + '」';
-    var ta = document.getElementById('anno-text');
-    ta.value = '';
-    ed.hidden = false;
-    var tb = document.getElementById('anno-toolbar');
-    var left = parseFloat(tb.style.left) || 20, top = parseFloat(tb.style.top) || 20;
-    ed.style.left = Math.max(8, Math.min(left, window.innerWidth - ed.offsetWidth - 8)) + 'px';
-    ed.style.top = Math.max(8, top + 40) + 'px';
-    ta.focus();
+  /* 两条来源的数据结构不同（本地 / 服务端），统一成同一形状再渲染，
+     否则 reactions / replies 在本地批次上会是 undefined，一点就崩。 */
+  function findAnno(id) {
+    var hit = null;
+    others.forEach(function (o) { if (o.id === id) hit = o; });
+    if (hit) return hit;
+    annos.forEach(function (m) {
+      if (m.id === id) {
+        hit = {
+          id: m.id, sec: m.sec, type: m.type || 'casual', kind: m.kind || null,
+          exact: m.exact, prefix: m.prefix, suffix: m.suffix, start: m.start, end: m.end,
+          body: m.body, fix: m.fix || null, name: m.name || null,
+          status: 'open',
+          reactions: { useful: 0, same: 0, doubt: 0 },
+          replies: [], ts: m.ts, mine: true, sync: m.sync
+        };
+      }
+    });
+    return hit;
   }
 
-  function closeEditor() {
-    var ed = document.getElementById('anno-editor');
-    if (ed) ed.hidden = true;
-    pending = null;
-    var sel = window.getSelection(); if (sel) sel.removeAllRanges();
-    hideToolbar();
+  function gotoAnchor(a) {
+    var r = resolve(a);
+    if (!r) { toast('这条批注的原文找不到了'); return; }
+    var box = r.getBoundingClientRect();
+    // 被筛选藏起来的卡片 display:none，rect 全 0，照着跳会跳到页顶 —— 先说清原因
+    if (!box.width && !box.height) {
+      toast('这条现在被筛选条件藏起来了 —— 先点「清空筛选」，再点它');
+      return;
+    }
+    window.scrollTo({ top: window.pageYOffset + box.top - window.innerHeight / 2, behavior: 'smooth' });
   }
 
-  function commit(body) {
-    var a = {
-      id: uid(), sec: pending.sec, start: pending.start, end: pending.end,
-      exact: pending.exact, prefix: pending.prefix, suffix: pending.suffix,
-      body: body, ts: Date.now(), sync: 'pending'
-    };
-    annos.push(a);
-    save();
-    if (!showMarks) setShow(true);
-    paint(); renderList();
-    closeEditor();
-    toast('已收到，感谢 —— 你的批注只有作者能看到');
-    flush();
+  function adminDone(a) {
+    fetch(ADMIN_EP, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Token': ADMIN_TOKEN },
+      body: JSON.stringify({ id: a.id, page: PAGE, done: true })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) { a.status = 'done'; renderList(); toast('已标记为「已处理」'); }
+        else toast('操作失败：' + ((j && j.error) || 'unknown'));
+      })
+      .catch(function () { toast('操作失败：网络错误'); });
   }
 
-  /* ========================================================== 启动 */
+  /* ------------------------------------------------------------ 启动 */
+
+  function init() {
+    if (!document.body) return;
+    ADMIN_TOKEN = initAdmin();
+    injectStyle();
+    buildUI();
+    placeRoot();
+
+    annos = load();
+    myRc = loadRc();
+    secIndex = buildIndex();
+
+    if (!SUPPORT) toast('当前浏览器不支持高亮 API，批注仍可读写，但不显示划线', 5000);
+
+    setShow(true);
+    paint();
+    renderList();
+    initTurnstile();
+    setTimeout(flush, 1200);
+    fetchOthers();          // v2：公开批注
+
+    document.addEventListener('mouseup', onSelect);
+    document.addEventListener('touchend', function (e) { setTimeout(function () { onSelect(e); }, 30); }, { passive: true });
+    document.addEventListener('scroll', hideToolbar, { passive: true });
+    window.addEventListener('online', flush);
+    window.addEventListener('focus', flush);
+    window.addEventListener('resize', schedulePlace);
+    window.addEventListener('load', schedulePlace);   // 图片/字体落位后底部栏高度可能变
+
+    var lst = document.getElementById('anno-list');
+    lst.addEventListener('click', onListClick);
+    lst.addEventListener('mouseover', function (e) {
+      var it = e.target.closest('.anno-item');
+      if (it) hoverAnno(it.getAttribute('data-id'));
+    });
+    lst.addEventListener('mouseout', function (e) {
+      var it = e.target.closest('.anno-item');
+      if (it && !it.contains(e.relatedTarget)) clearHover();
+    });
+
+    // 仅本地调试时暴露内部状态，线上不挂
+    if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) {
+      window.__anno = {
+        reindex: function () { secIndex = buildIndex(); },
+        paint: paint,
+        resolve: resolve,
+        openInline: openInline,
+        openEditor: openEditor,
+        pending: function () { return pending ? { sec: pending.sec, start: pending.start, end: pending.end } : null; },
+        annos: function () { return annos; },
+        others: function () { return others; },
+        /* 调试：传入 CSS 选择器，检查该元素内第一个长文本节点能否被锚定 */
+        tryPick: function (sel) {
+          var host = document.querySelector(sel);
+          if (!host) return 'nohost';
+          var w = document.createTreeWalker(host, NodeFilter.SHOW_TEXT), n, t = null;
+          while ((n = w.nextNode())) { if (n.nodeValue.trim().length > 20) { t = n; break; } }
+          if (!t) return 'notext';
+          var r = document.createRange();
+          r.setStart(t, 2); r.setEnd(t, Math.min(24, t.nodeValue.length));
+          var a = anchorFromRange(r);
+          return a ? ('ok|sec=' + a.sec + '|' + a.exact.slice(0, 14)) : ('null|' + t.nodeValue.slice(0, 14));
+        },
+        stats: function () { return { mine: annos.length, others: others.length, secs: Object.keys(index().secs).length }; }
+      };
+    }
+  }
 
   /* ---------------------------------------------- 悬浮按钮的落点
      站点自己有几层不透明的固定/粘性元素：#progress(999)、#toc(950)、div.bottomnav(800)。
@@ -700,42 +1368,6 @@
   function schedulePlace() {
     if (placeTimer) clearTimeout(placeTimer);
     placeTimer = setTimeout(function () { placeTimer = null; placeRoot(); }, 150);
-  }
-
-  function init() {
-    if (!document.body) return;
-    injectStyle();
-    buildUI();
-    placeRoot();
-    annos = load();
-    secIndex = buildIndex();
-
-    if (!SUPPORT) toast('当前浏览器不支持高亮 API，批注仍可提交但不显示划线', 5000);
-
-    setShow(true);
-    paint();
-    renderList();
-    initTurnstile();
-    setTimeout(flush, 1200);
-
-    document.addEventListener('mouseup', onSelect);
-    document.addEventListener('touchend', function (e) { setTimeout(function () { onSelect(e); }, 30); }, { passive: true });
-    document.addEventListener('scroll', hideToolbar, { passive: true });
-    window.addEventListener('online', flush);
-    window.addEventListener('focus', flush);
-    window.addEventListener('resize', schedulePlace);
-    window.addEventListener('load', schedulePlace);   // 图片/字体落位后底部栏高度可能变
-
-    // 仅本地调试时暴露内部状态，线上不挂
-    if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) {
-      window.__anno = {
-        reindex: function () { secIndex = buildIndex(); },
-        paint: paint,
-        resolve: resolve,
-        show: setShow,
-        stats: function () { return { count: annos.length, secs: Object.keys(index().secs).length }; }
-      };
-    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
