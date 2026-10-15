@@ -109,6 +109,14 @@ p{margin:10px 0}
 .axis-card>b:first-child{display:block;color:var(--teal);font-size:14px;letter-spacing:.5px;margin-bottom:4px}
 .axis-card b{color:var(--ink)}
 .hint{font-size:12.8px;color:var(--ink2);line-height:1.7}
+/* 「同一位作者的其他站点」——文末引流卡。刻意不用缩略图：本站整体无位图，
+   加图既破坏调性也增加体积；纯文字卡片反而更像这个站自己长出来的。 */
+.xgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
+.xcard{display:block;border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--card);text-decoration:none;color:var(--ink);transition:border-color .15s}
+.xcard:hover{border-color:var(--teal2);text-decoration:none}
+.xcard b{display:block;font-size:15.5px;color:var(--teal);font-weight:600;line-height:1.55}
+.xcard span{display:block;font-size:13.5px;color:var(--ink2);line-height:1.7;margin-top:8px}
+.xcard i{display:block;font-style:normal;font-size:13.5px;color:var(--teal);margin-top:12px}
 /* 证据体系说明 */
 .evnote{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:18px 0 0;background:var(--card);font-size:14px;line-height:1.8}
 .evnote h4{margin:0 0 6px;font-size:15px;color:var(--teal)}
@@ -1100,6 +1108,26 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 </div>
 
 <div class="wrap">
+<section id="more-sec">
+  <span class="sec-no">另见</span>
+  <h2>同一位作者的其他站点</h2>
+  <p class="lead">下面这两处与本指南同出一手，但体裁、口径完全不同 —— 列在这里，供你自己判断。</p>
+  <div class="xgrid">
+    <a class="xcard" href="https://strangeyu911-tech.github.io/justin-sun-corpus/" target="_blank" rel="noopener">
+      <b>高性价比人生指南（孙割版）</b>
+      <span>孙宇晨 2016–17 年那 156 集音频课，与 2026 年那次 4 小时 22 分长谈并排看：十年前说的，今天兑现了多少。</span>
+      <i>去看看 →</i>
+    </a>
+    <a class="xcard" href="https://htlb.strangeyu.xyz/" target="_blank" rel="noopener">
+      <b>《高性价比人生指南》18 个衍生站 · 聚合索引</b>
+      <span>另一个开源项目散在墙内各处的 18 个衍生站、加上维护者自己的几个站点聚在一页，逐个核实谁同步到了哪一版。</span>
+      <i>去看看 →</i>
+    </a>
+  </div>
+</section>
+</div>
+
+<div class="wrap">
 <footer>
   <div class="fgrid">
     <div class="fbox">
@@ -1114,7 +1142,6 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   </div>
 
   <div id="qq-entry"></div>
-
   <p>整理：Strange（灵感源自 Boden《以日为鉴：衰退时代生存指南》，本页为独立增补作品，非原书、亦非 HowToLiveBetter 官方版本）。<br>
   数据时点：2026 年 10 月。"情形 A 为主、置信度约 6–7 成"为该时点判断，会随季度数据滚动调整，请以本页标注的判断时点与最新数据为准。<br>
   本页为公开信息整理与研究观点，不构成投资、职业、医疗或法律建议，请结合自身情况独立决策。<br>

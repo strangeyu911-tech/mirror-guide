@@ -27,8 +27,13 @@
  *     joinUrl: 'https://qun.qq.com/universal-share/share?...',
  *     qr: 'wechat-qr.png',  // 作者微信二维码图片，默认按脚本自身路径推断
  *     slot: '#qq-entry',
- *     topbar: true          // 是否在顶栏加下拉入口，默认 true
+ *     topbar: true,         // 是否在顶栏加下拉入口，默认 true
+ *     siteName: '以日为鉴',  // 引导语里怎么称呼本站（默认「以日为鉴」）
+ *     wxNote: '以日为鉴'     // 加微信时的备注词
  *   };
+ *
+ * 两站共用：这个模块现在同时挂在 mirror-guide 与 justin-sun-corpus 上，
+ * 差异只有 QQ_CONFIG 里的 siteName / wxNote（同一个作者，同一个群）。
  *   </script>
  *
  * 为什么不是一个裸链接就完事（三个真实约束）：
@@ -51,6 +56,10 @@
     '&data=8KX_FL9Xg1-dfApNdZ18390GXEwlDB2H_EjZP70EiKU4jQ5ReFVFWbKQl9xnHyeklJyCeSgNTUOjWLw4Kx6UFA&svctype=4&tempid=h5_group_info'
   );
   var SLOT = CFG.slot || '#qq-entry';
+  // 这份模块现在两个站共用，文案里怎么称呼本站是可配的（默认按「以日为镜」的口吻）。
+  // siteName 用在两处引导语里，wxNote 是加微信时的备注词。
+  var SITE_NAME = String(CFG.siteName || '以日为鉴');
+  var WX_NOTE = String(CFG.wxNote || '以日为鉴');
   var WANT_TOPBAR = CFG.topbar !== false;
   // 二维码图片：默认按脚本自身的路径推断，这样模块被放到子目录也不会指错
   var QR_SRC = CFG.qr || (function () {
@@ -196,7 +205,7 @@
 
     var desc = document.createElement('p');
     desc.className = 'qq-desc';
-    desc.textContent = '读完有想法、发现哪条数据对不上、或者想聊聊自己那份情况，都欢迎进来说。指南的增补与数据更新也会先在群里发。';
+    desc.textContent = '读完有想法、发现哪条数据对不上、或者想聊聊自己那份情况，都欢迎进来说。' + SITE_NAME + '的增补与数据更新也会先在群里发。';
 
     var row = document.createElement('div');
     row.className = 'qq-row';
@@ -320,7 +329,7 @@
     /* ---- 顶部引导文案 ---- */
     var lead = document.createElement('p');
     lead.className = 'qm-lead';
-    lead.textContent = '读完想聊两句？加 QQ 群或加作者微信交流都行 —— 指南的增补与数据更新会先在群里发。';
+    lead.textContent = '读完想聊两句？加 QQ 群或加作者微信交流都行 —— ' + SITE_NAME + '的增补与数据更新会先在群里发。';
     menu.appendChild(lead);
 
     /* ---- ① QQ 群：整行就是「QQ：群号」这行文字，点整行才跳转 ---- */
@@ -358,7 +367,7 @@
     wxRow.setAttribute('role', 'menuitem');
     wxRow.setAttribute('aria-expanded', 'false');
     wxRow.innerHTML = '<span class="sm-ic">微</span><span class="sm-tx">加作者微信交流' +
-      '<small>扫码加我 · 备注「以日为鉴」</small></span>';
+      '<small>扫码加我 · 备注「' + WX_NOTE + '」</small></span>';
     menu.appendChild(wxRow);
 
     qrBox = document.createElement('div');
