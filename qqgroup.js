@@ -28,12 +28,11 @@
  *     qr: 'wechat-qr.png',  // 作者微信二维码图片，默认按脚本自身路径推断
  *     slot: '#qq-entry',
  *     topbar: true,         // 是否在顶栏加下拉入口，默认 true
- *     siteName: '以日为鉴',  // 引导语里怎么称呼本站（默认「以日为鉴」）
  *     wxNote: '以日为鉴'     // 加微信时的备注词
  *   };
  *
- * 两站共用：这个模块现在同时挂在 mirror-guide 与 justin-sun-corpus 上，
- * 差异只有 QQ_CONFIG 里的 siteName / wxNote（同一个作者，同一个群）。
+ * 两站共用：这个模块同时挂在 mirror-guide 与 justin-sun-corpus 上，
+ * 差异只有 QQ_CONFIG 里的 wxNote（同一个作者，同一个群）。引导语文案刻意写成中性的。
  *   </script>
  *
  * 为什么不是一个裸链接就完事（三个真实约束）：
@@ -56,9 +55,9 @@
     '&data=8KX_FL9Xg1-dfApNdZ18390GXEwlDB2H_EjZP70EiKU4jQ5ReFVFWbKQl9xnHyeklJyCeSgNTUOjWLw4Kx6UFA&svctype=4&tempid=h5_group_info'
   );
   var SLOT = CFG.slot || '#qq-entry';
-  // 这份模块现在两个站共用，文案里怎么称呼本站是可配的（默认按「以日为镜」的口吻）。
-  // siteName 用在两处引导语里，wxNote 是加微信时的备注词。
-  var SITE_NAME = String(CFG.siteName || '以日为鉴');
+  // 这份模块两个站共用。引导语刻意写成中性的（不含站名）—— 原来那句
+  // 「<站名>的增补与数据更新会先在群里发」在语料整理类的站上根本不成立
+  // （材料是既成事实，不会"更新"），留着只会显得空。只有加微信的备注词需要按站配。
   var WX_NOTE = String(CFG.wxNote || '以日为鉴');
   var WANT_TOPBAR = CFG.topbar !== false;
   // 二维码图片：默认按脚本自身的路径推断，这样模块被放到子目录也不会指错
@@ -176,6 +175,11 @@
       'box-shadow:0 0 0 1px var(--line)}',
       '.qm-qrbox .qr-hint{margin:9px 2px 4px}',
       '@media(max-width:420px){.qq-menu{width:min(300px,calc(100vw - 30px))}}',
+      // ---- 页脚卡片下面那块「加作者微信」，二维码直接露出来（顶栏下拉要点开才看得到）----
+      '.qq-wxcard{margin-top:11px}',
+      '.qq-wxcard img{width:160px;height:160px;flex:0 0 auto;border-radius:8px;box-shadow:0 0 0 1px var(--line)}',
+      '.qq-wxcard .qq-main{align-self:center}',
+      '@media(max-width:560px){.qq-wxcard img{width:124px;height:124px}}',
       '@media(max-width:560px){.qq-card{flex-direction:column;gap:11px;padding:15px 16px}.qq-ic{width:38px;height:38px}}'
     ].join('');
     var st = document.createElement('style');
@@ -205,7 +209,7 @@
 
     var desc = document.createElement('p');
     desc.className = 'qq-desc';
-    desc.textContent = '读完有想法、发现哪条数据对不上、或者想聊聊自己那份情况，都欢迎进来说。' + SITE_NAME + '的增补与数据更新也会先在群里发。';
+    desc.textContent = '读完有想法、发现哪条数据对不上、或者想聊聊自己那份情况，都欢迎进来说。';
 
     var row = document.createElement('div');
     row.className = 'qq-row';
@@ -282,6 +286,19 @@
     card.appendChild(ic);
     card.appendChild(main);
     slot.appendChild(card);
+
+    /* 微信二维码直接露在下面。顶栏下拉里那份要点开才看得到，而页脚这块本来就是
+       「把话说全」的兜底位，二维码摆出来比藏在交互后面省事。160px 是能扫的下限附近，
+       再小手机上就费劲了。 */
+    var wxCard = document.createElement('section');
+    wxCard.className = 'qq-card qq-wxcard';
+    wxCard.setAttribute('aria-label', '加作者微信交流');
+    wxCard.setAttribute('data-anno-skip', '');
+    wxCard.innerHTML =
+      '<img src="' + QR_SRC + '" alt="作者微信二维码" width="160" height="160">' +
+      '<div class="qq-main"><h4>加作者微信交流</h4>' +
+      '<p class="qq-desc">微信「扫一扫」，或长按图片识别。用电脑看的话，拿手机扫屏幕也行。</p></div>';
+    slot.appendChild(wxCard);
   }
 
   /* ---------------------------------------------------------- 顶栏下拉入口 */
@@ -329,7 +346,7 @@
     /* ---- 顶部引导文案 ---- */
     var lead = document.createElement('p');
     lead.className = 'qm-lead';
-    lead.textContent = '读完想聊两句？加 QQ 群或加作者微信交流都行 —— ' + SITE_NAME + '的增补与数据更新会先在群里发。';
+    lead.textContent = '读完想聊两句？加 QQ 群或加作者微信交流都行。';
     menu.appendChild(lead);
 
     /* ---- ① QQ 群：整行就是「QQ：群号」这行文字，点整行才跳转 ---- */
