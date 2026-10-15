@@ -47,6 +47,8 @@ p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
 .topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:900}
 .topbar .in{display:flex;align-items:stretch;height:var(--bar-h)}
 .tb-brand{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:0 12px 0 16px;min-width:0}
+a.tb-brand{color:inherit;text-decoration:none}
+a.tb-brand:hover{background:rgba(36,86,90,.08)}
 .tb-brand .logo{flex:0 0 auto;width:30px;height:30px}
 .tb-brand .brand{font-weight:700;letter-spacing:.3px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .brand .b-short{display:none}.brand .b-xs{display:none}
@@ -237,11 +239,11 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 
 <div class="topbar">
   <div class="in">
-    <div class="tb-brand">
+    <a class="tb-brand" href="index.html">
       <button class="iconbtn" id="tocbtn" aria-label="打开目录" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <svg class="logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="24" height="24" rx="5" fill="#24565a"/><circle cx="12" cy="9.5" r="4" fill="#f5f1e8"/><path d="M5 17h14" stroke="#f5f1e8" stroke-width="2" stroke-linecap="round"/></svg>
       <span class="brand"><span class="b-full">以日为镜 · 衰退时代生存指南（增补版）</span><span class="b-short">以日为镜（增补版）</span><span class="b-xs">以日为镜</span></span>
-    </div>
+    </a>
     <div class="tb-main">
       <div class="tb-col">
         <span class="sp"></span>
