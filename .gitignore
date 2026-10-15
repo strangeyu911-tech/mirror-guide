@@ -1,3 +1,4 @@
 # 本地备份与临时产物（不纳入版本库）
 .bak/
 *.orig
+boden-full-guide/
