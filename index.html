@@ -28,6 +28,7 @@
   --line:#ddd5c4; --teal:#24565a; --teal2:#4a8a86; --fact:#2f6f5e; --mid:#8a6d2f; --low:#9a4a3a;
   --muted:#837d72;
   --shadow:0 1px 2px rgba(40,35,25,.06),0 8px 24px rgba(40,35,25,.06);
+  --cgrid:#e6dfd1;
   --bar-h:60px; --content-w:980px;
 }
 html[data-theme="dark"]{
@@ -35,6 +36,7 @@ html[data-theme="dark"]{
   --line:#2e3338; --teal:#6fb0ad; --teal2:#4a8a86; --fact:#6fae97; --mid:#c9a85e; --low:#d08a7a;
   --muted:#a9a294;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+  --cgrid:#2e3338;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -44,6 +46,15 @@ a:hover{text-decoration:underline}
 p,li,td,th{overflow-wrap:anywhere;word-break:break-word}
 .wrap{max-width:880px;margin:0 auto;padding:0 22px}
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--teal);z-index:999;transition:width .1s}
+/* P0 · 微信内置浏览器兜底提示（仅 MicroMessenger UA 显示，默认 hidden） */
+.mm-tip{background:#fff6e0;border-bottom:1px solid #e8d9b5;color:#6b5528;font-size:13.5px;line-height:1.65}
+.mm-tip[hidden]{display:none}
+.mm-tip .mm-in{max-width:880px;margin:0 auto;padding:9px 22px;display:flex;gap:9px;align-items:flex-start}
+.mm-tip .mm-ic{flex:0 0 auto;line-height:1.5}
+.mm-tip b{font-weight:700}
+.mm-tip .mm-x{margin-left:auto;flex:0 0 auto;border:0;background:transparent;color:inherit;opacity:.6;font-size:18px;line-height:1;cursor:pointer;padding:0 2px;font-family:inherit}
+.mm-tip .mm-x:hover,.mm-tip .mm-x:focus{opacity:1}
+html[data-theme="dark"] .mm-tip{background:#2a2419;border-bottom-color:#4a3f28;color:#e0cf9f}
 .topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:900}
 .topbar .in{display:flex;align-items:stretch;height:var(--bar-h)}
 .tb-brand{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:0 12px 0 16px;min-width:0}
@@ -245,10 +256,104 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 .gloss dt{color:var(--teal);font-weight:600;white-space:nowrap}
 .gloss dd{margin:0;color:var(--ink2)}
 @media(max-width:640px){.gloss dl{grid-template-columns:1fr;gap:2px}.gloss dd{margin-bottom:8px}}
+
+
+
+/* ===== static-charts 开始（生成器 tools/gen_charts.mjs）===== */
+/* 图表配色。深色主题必须整体提亮 —— 亮色那套值放到 #16181a 上会糊成一片。 */
+:root{
+  --ch-taupe:#7a6f60; --ch-teal:#24565a; --ch-gold:#b07a3d;
+  --ch-sand:#b08d57; --ch-clay:#9c5a4a; --ch-green:#6f8a6a;
+}
+html[data-theme="dark"]{
+  --ch-taupe:#a89a85; --ch-teal:#57a09c; --ch-gold:#d2a463;
+  --ch-sand:#c8a877; --ch-clay:#c47d68; --ch-green:#8fa98a;
+}
+/* 几何一律用百分比/CSS 排布、文字一律是 HTML —— 这样 350px 手机和 980px 桌面上
+   字号都不变。别退回"固定尺寸 SVG 缩放"那套，手机上字会小到看不清。 */
+.chart-static{height:auto!important;width:100%}
+.fw-unit{font-size:11.5px;color:var(--muted);margin:0 0 6px}
+.fw-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:0 0 8px}
+.fw-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.fw-v{display:grid;grid-template-columns:var(--ybw,44px) 1fr;gap:0 8px}
+.fw-v.fw-xl{margin-top:5px}
+.fw-axl,.fw-axr{position:relative;height:var(--ph,240px)}
+.fw-axl span,.fw-axr span{position:absolute;transform:translateY(50%);font-size:11px;color:var(--muted);white-space:nowrap;line-height:1}
+.fw-axl span{right:0}
+/* 双轴图（起薪那张）。.fw-split 里是 **三个** 孩子，别只想着两个：
+     ① .fw-v（左轴 + 绘图区）  ② .fw-axr（右轴）  ③ 末尾那行 X 轴标签 —— 它也是 .fw-v！
+   ⚠️ 第 ① 条必须带 :not(.fw-xl)，否则两个 .fw-v 被塞进同一格互相重叠：
+      绘图区塌掉、X 轴标签跑到图顶上。
+   ⚠️ 外层也别写成 grid-template-columns:44px 1fr 40px 那种三栏 —— .fw-v 会掉进 44px 的第一栏。
+   .fw-v 内部的列宽由它自己的 --ybw 管，外层只负责分「左轴+绘图区」和「右轴」两栏。 */
+.fw-split{display:grid;grid-template-columns:1fr 40px;gap:0 6px;align-items:start}
+.fw-split .fw-v:not(.fw-xl){grid-column:1;grid-row:1}
+.fw-split .fw-v.fw-xl{grid-column:1;grid-row:2}
+.fw-axr{grid-column:2;grid-row:1}
+.fw-axr span{left:0}
+.fw-plot{position:relative;height:var(--ph,240px);border-left:1px solid var(--cgrid)}
+.fw-gl{position:absolute;left:0;right:0;height:1px;background:var(--cgrid)}
+.fw-bar{position:absolute;bottom:0;transform:translateX(-50%);border-radius:3px 3px 0 0}
+/* text-shadow 在这里当描边用：彩色标签常压在实心柱子上（起薪那张的金色折线标签
+   就落在深青柱顶），描一圈卡片底色才能把字从柱子里托出来 */
+.fw-val{position:absolute;transform:translateX(-50%);font-size:10.5px;color:var(--muted);white-space:nowrap;line-height:1;text-shadow:0 0 3px var(--card),0 0 3px var(--card)}
+.fw-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fw-dot{position:absolute;transform:translate(-50%,50%);border-radius:50%}
+.fw-mark{position:absolute;transform:translate(-50%,50%);background:#9c5a4a;color:#fff;font-size:10px;padding:2px 7px;border-radius:999px;white-space:nowrap;line-height:1.3}
+.fw-mline{position:absolute;left:0;right:0;height:0;border-top:1.5px dashed var(--ch-clay)}
+.fw-mline.dotted{border-top-style:dotted;border-top-width:2px}
+.fw-mline.v{left:0;right:auto;top:0;bottom:0;height:auto;width:0;border-top:0;border-left:1.5px dotted var(--ch-clay)}
+.fw-mlab{position:absolute;font-size:10px;white-space:nowrap;line-height:1;text-shadow:0 0 3px var(--card),0 0 3px var(--card)}
+.fw-mlab.v{top:0;transform:translateX(-50%) rotate(90deg);transform-origin:center top;margin-top:44px}
+.fw-xrow{position:relative;height:18px}
+.fw-xrow span{position:absolute;top:0;transform:translateX(-50%);font-size:11px;color:var(--ink);white-space:nowrap;line-height:1}
+.fw-xrow.tilt{height:42px}
+.fw-xrow.tilt span{transform:translateX(-50%) rotate(-22deg);transform-origin:center top}
+/* margin-top 是给 .fw-hmarklab 留的位置（标签浮在图表上方外侧） */
+.fw-h{position:relative;margin-top:20px}
+.fw-hgrid{position:absolute;left:0;right:0;top:0;bottom:34px;pointer-events:none}
+.fw-hgrid span{position:absolute;top:0;bottom:0;width:1px;background:var(--cgrid)}
+.fw-hrow{display:grid;grid-template-columns:var(--lbw,96px) 1fr;align-items:center;gap:8px;height:30px}
+.fw-hlb{font-size:11px;color:var(--ink);text-align:right;line-height:1.25}
+.fw-htrack{position:relative;height:16px}
+.fw-hbar{position:absolute;left:0;top:0;height:100%;border-radius:3px}
+.fw-hval{position:absolute;top:50%;transform:translateY(-50%);font-size:10.5px;color:var(--muted);white-space:nowrap}
+/* 参考线（如「全国本科平均 6435」）。
+   ⚠️ z-index 不能省：mark.at 常年落在实心数据条内部，而条所在的 .fw-htrack 是
+   position:relative 且 DOM 在 .fw-hmark 之后 —— 不加 z-index 线会被条整个盖住。 */
+.fw-hmark{position:absolute;top:0;bottom:34px;width:0;border-left:1.5px dashed var(--ch-clay);z-index:3}
+/* 标签只能放图表上方外侧：横条图内部条几乎铺满，放图内必被压住 */
+.fw-hmarklab{position:absolute;bottom:100%;margin-bottom:3px;transform:translateX(-50%);font-size:10px;color:var(--ch-clay);white-space:nowrap;z-index:4}
+.fw-haxis{height:20px;align-items:start}
+.fw-haxval{position:absolute;top:2px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+@media(max-width:560px){
+  .fw-h{--lbw:78px!important}
+  .fw-hlb{font-size:10.5px}
+  .fw-xrow.tilt span{transform:translateX(-50%) rotate(-30deg)}
+}
+/* 贴边标签向内锚定 —— 必须排在所有 .fw-xrow 规则之后 */
+.fw-xrow span.er,.fw-val.er{transform:translateX(-100%)}
+.fw-xrow span.el,.fw-val.el{transform:translateX(0)}
+.fw-xrow.tilt span.er{transform:translateX(-100%) rotate(-22deg)}
+.fw-xrow.tilt span.el{transform:translateX(0) rotate(-22deg)}
+@media(max-width:560px){
+  .fw-xrow.tilt span.er{transform:translateX(-100%) rotate(-30deg)}
+  .fw-xrow.tilt span.el{transform:translateX(0) rotate(-30deg)}
+}
+/* ===== static-charts 结束 ===== */
 </style>
 </head>
 <body>
 <div id="progress"></div>
+
+<!-- P0 · 微信内置浏览器兜底提示：仅在 MicroMessenger 里由脚本显示 -->
+<div class="mm-tip" id="mmTip" role="note" hidden>
+  <div class="mm-in">
+    <span class="mm-ic" aria-hidden="true">&#9888;&#65039;</span>
+    <span>微信内置浏览器偶发加载异常。若本页<b>图表或图片显示不全</b>，请点右上角 <b>&#183;&#183;&#183;</b> &#8594; <b>在浏览器打开</b>。</span>
+    <button class="mm-x" type="button" id="mmTipX" aria-label="关闭提示">&#215;</button>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="in">
@@ -529,7 +634,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <tr><td>汇率</td><td>日元 1985 约 240 → 1995 约 80<span class="tag tag-fact">高可信</span></td><td>人民币 1995–2005 钉住 8.28，此后有管理浮动<span class="tag tag-fact">高可信</span></td></tr>
   </table></div>
 
-  <div id="chart-debt" class="chart"></div>
+  <div id="chart-debt" class="chart chart-static"><div class="fw-unit">政府债务 / GDP %</div><div class="fw-v" style="--ph:230px;--ybw:34px"><div class="fw-axl"><span style="bottom:100%">300</span><span style="bottom:83.33%">250</span><span style="bottom:66.67%">200</span><span style="bottom:50%">150</span><span style="bottom:33.33%">100</span><span style="bottom:16.67%">50</span><span style="bottom:0%">0</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:16.67%"></span><span class="fw-gl" style="bottom:33.33%"></span><span class="fw-gl" style="bottom:50%"></span><span class="fw-gl" style="bottom:66.67%"></span><span class="fw-gl" style="bottom:83.33%"></span><span class="fw-gl" style="bottom:100%"></span><span class="fw-bar" style="left:8.33%;width:26px;height:68.13%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:8.33%;bottom:calc(68.13% + 3px)">204.4</span><span class="fw-bar" style="left:25%;width:26px;height:86.67%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:25%;bottom:calc(86.67% + 3px)">260</span><span class="fw-bar" style="left:41.67%;width:26px;height:71.67%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:41.67%;bottom:calc(71.67% + 3px)">215</span><span class="fw-bar" style="left:58.33%;width:26px;height:35.63%;background:var(--ch-teal)"></span><span class="fw-val" style="left:58.33%;bottom:calc(35.63% + 3px)">106.9</span><span class="fw-bar" style="left:75%;width:26px;height:28.33%;background:var(--ch-teal)"></span><span class="fw-val" style="left:75%;bottom:calc(28.33% + 3px)">85</span><span class="fw-bar" style="left:91.67%;width:26px;height:20%;background:var(--ch-teal)"></span><span class="fw-val" style="left:91.67%;bottom:calc(20% + 3px)">60</span></div></div><div class="fw-v fw-xl" style="--ybw:34px"><div></div><div class="fw-xrow tilt"><span class="el" style="left:8.33%">日 IMF</span><span class="" style="left:25%">日 日方</span><span class="" style="left:41.67%">日 达利欧</span><span class="" style="left:58.33%">中 全口径IMF</span><span class="" style="left:75%">中 BIS</span><span class="er" style="left:91.67%">中 显性</span></div></div>
+</div><!--/chart-debt-->
+
+
+
+
   <p class="hint">图：政府债务/GDP 多口径并排。日本三个口径均显著高于中国全口径——这是"政策仍有空间"判断的核心证据<span class="tag tag-fact">高可信</span>。</p>
 
   <h3 id="s14">1.4 高风险点，与不重蹈极端情形的理由</h3>
@@ -720,7 +830,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   </div>
 
   <p style="margin:18px 0 4px"><b>出生人口的“浪头”长什么样</b>（国家统计局年度公报口径，万人）：<span class="tag tag-fact">高可信 · 已查证</span></p>
-  <div id="chart-birth" class="chart"></div>
+  <div id="chart-birth" class="chart chart-static"><div class="fw-unit">万人</div><div class="fw-v" style="--ph:240px;--ybw:40px"><div class="fw-axl"><span style="bottom:100%">1800</span><span style="bottom:83.33%">1600</span><span style="bottom:66.67%">1400</span><span style="bottom:50%">1200</span><span style="bottom:33.33%">1000</span><span style="bottom:16.67%">800</span><span style="bottom:0%">600</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:16.67%"></span><span class="fw-gl" style="bottom:33.33%"></span><span class="fw-gl" style="bottom:50%"></span><span class="fw-gl" style="bottom:66.67%"></span><span class="fw-gl" style="bottom:83.33%"></span><span class="fw-gl" style="bottom:100%"></span><svg class="fw-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="5.000,1.167 15.000,6.417 25.000,23.083 35.000,27.917 45.000,50.000 55.000,61.500 65.000,70.333 75.000,74.833 85.000,70.500 95.000,84.000 95.000,100 5.000,100" fill="rgba(36,86,90,0.08)"/><polyline points="5.000,1.167 15.000,6.417 25.000,23.083 35.000,27.917 45.000,50.000 55.000,61.500 65.000,70.333 75.000,74.833 85.000,70.500 95.000,84.000" fill="none" stroke="var(--ch-teal)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="fw-dot" style="left:5%;bottom:98.83%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val el" style="left:5%;bottom:calc(98.83% + 7px)">1786</span><span class="fw-dot" style="left:15%;bottom:93.58%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:15%;bottom:calc(93.58% + 7px)">1723</span><span class="fw-dot" style="left:25%;bottom:76.92%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:25%;bottom:calc(76.92% + 7px)">1523</span><span class="fw-dot" style="left:35%;bottom:72.08%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:35%;bottom:calc(72.08% + 7px)">1465</span><span class="fw-dot" style="left:45%;bottom:50%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:45%;bottom:calc(50% + 7px)">1200</span><span class="fw-dot" style="left:55%;bottom:38.5%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:55%;bottom:calc(38.5% + 7px)">1062</span><span class="fw-dot" style="left:65%;bottom:29.67%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:65%;bottom:calc(29.67% + 7px)">956</span><span class="fw-dot" style="left:75%;bottom:25.17%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:75%;bottom:calc(25.17% + 7px)">902</span><span class="fw-dot" style="left:85%;bottom:29.5%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val" style="left:85%;bottom:calc(29.5% + 7px)">954</span><span class="fw-dot" style="left:95%;bottom:16%;width:7px;height:7px;background:var(--ch-teal)"></span><span class="fw-val er" style="left:95%;bottom:calc(16% + 7px)">792</span><span class="fw-mark" style="left:95%;bottom:calc(16% - 22px)">新低</span></div></div><div class="fw-v fw-xl" style="--ybw:40px"><div></div><div class="fw-xrow"><span class="el" style="left:5%">2016</span><span class="" style="left:15%">2017</span><span class="" style="left:25%">2018</span><span class="" style="left:35%">2019</span><span class="" style="left:45%">2020</span><span class="" style="left:55%">2021</span><span class="" style="left:65%">2022</span><span class="" style="left:75%">2023</span><span class="" style="left:85%">2024</span><span class="er" style="left:95%">2025</span></div></div>
+</div><!--/chart-birth-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:0 0 10px">2016–2017 年为当年公报时点数（七普后修订口径更高，2016 约 1883 万），不影响趋势；2024 年龙年小幅反弹后，2025 年以 792 万再创新低。这个浪头沿学制上移，就是 3.4 节教师岗位“排浪式”冲击的来源。</p>
 
   <h3 id="s33">3.3 学历：哪些学历仍值，要不要读研/读博</h3>
@@ -732,7 +847,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   <p><b>值得读研/读博的三种情况——先讲推演逻辑，再给结论。</b>这三条不是个人经验，而是劳动经济学两套经典理论在中国就业市场上的直接应用，并有国内十余年毕业生调查数据支撑<sup class="ref"><a href="#ref45">[45]</a></sup>：</p>
   <p>① <b>牌照型门槛——信号理论与工作竞争模型的直接推论。</b>Spence（1973）的信号/筛选理论指出：招聘时雇主无法直接观察你的真实能力，学历是能力的"可信信号"；Thurow（1975）的工作竞争模型进一步指出，工资主要由岗位决定、求职者按"培训成本"排队，学历就是队列位置。当职业入口被制度性设了门槛（执业资格、编制招考、定向选调目录），没有对应学历连候选池都进不去——读研/读博就是入场券。<b>适用：医生、法学、科研院所、部分算法/研发岗、定向选调。</b>（高校教职不在此列，它已从牌照型滑向"彩票型"，下面单列。）</p>
   <p>② <b>产业溢价型——人力资本理论的内部收益率核算。</b>Becker（1964）、Mincer（1974）把教育视为投资：回报 = 毕业后收入流增量 −（学费 + 几年机会成本），算得过来才值得。国内实证看北大岳昌君团队 2003–2021 年全国高校毕业生就业调查：2019 届专科/本科/硕士/博士月起薪为 3548/5417/8778/13849 元，硕士溢价真实存在；但 2003–2021 年起薪年均增速为专科 6.1%、本科 7.8%、硕士 7.0%、博士 9% 以上——<b>硕士起薪高，但边际增速反而低于本科，相对溢价在收窄、且高度依赖学科</b>（相对倍数约从 2003 年 1.83 倍降至 2019 年 1.62 倍，但同期绝对差额仍从约 1345 元扩大到约 3361 元——即"相对倍数小幅收窄、绝对差距仍在扩大"）<sup class="ref"><a href="#ref38">[38]</a></sup>。麦可思 2026 版报告显示 2025 届本科月收入 6435 元、高职 4882 元，五年实际涨幅 7.7%/5.8%<sup class="ref"><a href="#ref39">[39]</a></sup>。</p>
-  <div id="chart-salary" class="chart"></div>
+  <div id="chart-salary" class="chart chart-static"><div class="fw-unit">起薪(元)</div><div class="fw-legend"><span><i style="background:var(--ch-teal)"></i>2019届月起薪</span><span><i style="background:var(--ch-gold)"></i>2003–2021年均增速（右轴）</span></div><div class="fw-split"><div class="fw-v" style="--ph:215px;--ybw:40px"><div class="fw-axl"><span style="bottom:100%">15000</span><span style="bottom:80%">12000</span><span style="bottom:60%">9000</span><span style="bottom:40%">6000</span><span style="bottom:20%">3000</span><span style="bottom:0%">0</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:20%"></span><span class="fw-gl" style="bottom:40%"></span><span class="fw-gl" style="bottom:60%"></span><span class="fw-gl" style="bottom:80%"></span><span class="fw-gl" style="bottom:100%"></span><span class="fw-bar" style="left:12.5%;width:34px;height:23.65%;background:var(--ch-teal)"></span><span class="fw-val" style="left:12.5%;bottom:calc(23.65% + 3px)">3548</span><span class="fw-bar" style="left:37.5%;width:34px;height:36.11%;background:var(--ch-teal)"></span><span class="fw-val" style="left:37.5%;bottom:calc(36.11% + 3px)">5417</span><span class="fw-bar" style="left:62.5%;width:34px;height:58.52%;background:var(--ch-teal)"></span><span class="fw-val" style="left:62.5%;bottom:calc(58.52% + 3px)">8778</span><span class="fw-bar" style="left:87.5%;width:34px;height:92.33%;background:var(--ch-teal)"></span><span class="fw-val" style="left:87.5%;bottom:calc(92.33% + 3px)">13849</span><svg class="fw-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="12.500,56.429 37.500,44.286 62.500,50.000 87.500,35.714" fill="none" stroke="var(--ch-gold)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="fw-dot" style="left:12.5%;bottom:56.43%%;width:8px;height:8px;background:var(--ch-gold)"></span><span class="fw-val" style="left:12.5%;bottom:calc(56.43%% + 7px);color:var(--ch-gold)">6.1%</span><span class="fw-dot" style="left:37.5%;bottom:44.29%%;width:8px;height:8px;background:var(--ch-gold)"></span><span class="fw-val" style="left:37.5%;bottom:calc(44.29%% + 7px);color:var(--ch-gold)">7.8%</span><span class="fw-dot" style="left:62.5%;bottom:50%%;width:8px;height:8px;background:var(--ch-gold)"></span><span class="fw-val" style="left:62.5%;bottom:calc(50%% + 7px);color:var(--ch-gold)">7.0%</span><span class="fw-dot" style="left:87.5%;bottom:35.71%%;width:8px;height:8px;background:var(--ch-gold)"></span><span class="fw-val" style="left:87.5%;bottom:calc(35.71%% + 7px);color:var(--ch-gold)">>9%</span></div></div><div class="fw-axr" style="--ph:215px"><span style="bottom:100%">14%</span><span style="bottom:75%">10.5%</span><span style="bottom:50%">7%</span><span style="bottom:25%">3.5%</span><span style="bottom:0%">0%</span></div><div class="fw-v fw-xl" style="--ybw:40px"><div></div><div class="fw-xrow"><span style="left:12.5%">专科</span><span style="left:37.5%">本科</span><span style="left:62.5%">硕士</span><span style="left:87.5%">博士</span></div></div></div>
+</div><!--/chart-salary-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:-4px 0 10px">柱：2019 届各学历月起薪（元，岳昌君团队调查）；折线：2003–2021 年起薪年均增速（%）。注意：柱高显示硕士起薪台阶仍在、绝对差额仍在扩大（硕-本由约 1345 元扩大到约 3361 元），折线才显示增速差收窄——两者合起来是"相对溢价小幅收窄、绝对差距仍在扩大"。</p>
   <p><b>适用前提：你能进入有明确产业出口的方向和导师</b>（计算机、电子、多数工科、临床医学等）；验证方法是查课题组近三届毕业生的真实去向，而不是看招生简章。</p>
   <p>③ <b>赛道切换型——人力资本的迁移成本比较。</b>跨行业求职时，研究生教育把"新信号 + 技能训练 + 校招通道 + 校友网络"打包提供，比自学 + 社招的成本低。但它成立有一个承重墙：<b>你已有具体目标岗位，且新方向指向扩张部门</b>（新能源、AI、高端制造、医疗）；没有目标的"先读了再说"不是切换，是逃避（下文专门展开）。</p>
@@ -758,7 +878,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 
   <div style="background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:18px 0;font-size:14.5px;line-height:1.85">
     <p style="margin:0 0 8px"><b>对撞框 2｜考研报名三连降，是不是读研不值了？——先分清报名数和录取数。</b></p>
-    <div id="chart-grad" class="chart" style="height:300px"></div>
+    <div id="chart-grad" class="chart chart-static"><div class="fw-unit">万人</div><div class="fw-legend"><span><i style="background:var(--ch-taupe)"></i>硕士统考报名</span><span><i style="background:var(--ch-teal)"></i>硕士录取（含推免）</span></div><div class="fw-v" style="--ph:215px;--ybw:40px"><div class="fw-axl"><span style="bottom:100%">500</span><span style="bottom:80%">400</span><span style="bottom:60%">300</span><span style="bottom:40%">200</span><span style="bottom:20%">100</span><span style="bottom:0%">0</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:20%"></span><span class="fw-gl" style="bottom:40%"></span><span class="fw-gl" style="bottom:60%"></span><span class="fw-gl" style="bottom:80%"></span><span class="fw-gl" style="bottom:100%"></span><span class="fw-bar" style="left:calc(12.5% + -12px);width:22px;height:94.8%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:calc(12.5% + -12px);bottom:calc(94.8% + 3px)">474</span><span class="fw-bar" style="left:calc(12.5% + 13px);width:22px;height:22.97%;background:var(--ch-teal)"></span><span class="fw-val" style="left:calc(12.5% + 13px);bottom:calc(22.97% + 3px)">114.84</span><span class="fw-bar" style="left:calc(37.5% + -12px);width:22px;height:87.6%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:calc(37.5% + -12px);bottom:calc(87.6% + 3px)">438</span><span class="fw-bar" style="left:calc(37.5% + 13px);width:22px;height:23.71%;background:var(--ch-teal)"></span><span class="fw-val" style="left:calc(37.5% + 13px);bottom:calc(23.71% + 3px)">118.57</span><span class="fw-bar" style="left:calc(62.5% + -12px);width:22px;height:77.6%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:calc(62.5% + -12px);bottom:calc(77.6% + 3px)">388</span><span class="fw-bar" style="left:calc(62.5% + 13px);width:22px;height:24.74%;background:var(--ch-teal)"></span><span class="fw-val" style="left:calc(62.5% + 13px);bottom:calc(24.74% + 3px)">123.68</span><span class="fw-bar" style="left:calc(87.5% + -12px);width:22px;height:68.6%;background:var(--ch-taupe)"></span><span class="fw-val" style="left:calc(87.5% + -12px);bottom:calc(68.6% + 3px)">343</span></div></div><div class="fw-v fw-xl" style="--ybw:40px"><div></div><div class="fw-xrow"><span class="" style="left:12.5%">2023</span><span class="" style="left:37.5%">2024</span><span class="" style="left:62.5%">2025</span><span class="" style="left:87.5%">2026</span></div></div>
+</div><!--/chart-grad-->
+
+
+
+
     <p style="margin:4px 0">统考报名 474 万（2023）→438→388→343 万（2026），但硕士录取连年增至 123.68 万（2025）<sup class="ref"><a href="#ref36">[36]</a></sup>；推免名额从 2022 届约 12.5 万增至 2026 届预计 18–19 万，2025 年 8 月教育部一次性新增 67 所推免资格校（366→433 所）；专硕已占硕士招生近七成（2026 扩招名额近 2/3 给了工学专硕，学硕统招名额整体收缩），多省明确扩容学位（如广东"冲补强"计划的"优质学位扩容"）<sup class="ref"><a href="#ref35">[35]</a></sup><sup class="ref"><a href="#ref37">[37]</a></sup>。</p>
     <p style="margin:8px 0 0"><b>结论<span class="tag tag-fact">高可信 · 已查证</span>：降温的是"千军万马统考学硕"这一个模式，不是读研本身。</b>统考生上岸率回升，但头部高校推免率攀升（部分名校推免已超统考名额），双非、文科专硕出现招不满，结构在两头分化。日本 1996 年用 11 万考研名额缓冲当年 22 万新增失业大学生——研究生教育自带"就业蓄水池"功能，蓄水池越满，普通硕士的平均溢价越薄；这恰恰要求按上面三种情况精准使用读研，而不是随大流。</p>
   </div>
@@ -794,9 +919,19 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <tr><td>电气工程及其自动化、微电子科学与工程、自动化、能源与动力工程、车辆工程、新能源科学与工程——<b>连续多年几乎全是工科</b></td><td><b>红牌：</b>音乐表演、城乡规划、绘画、美术学、文化产业管理、劳动与社会保障；<b>黄牌：</b>法学、投资学、学前教育、公共事业管理、应用心理学、建筑学</td></tr>
   </table></div>
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:0 0 10px">注：麦可思 2025 版（2024 届）红牌为公共事业管理、音乐表演、绘画、法学、美术学；绘画连续 5 年红牌，音乐表演 5 年 4 次，法学 2026 版降为黄牌（本科直接就业口径，过法考后是另一条通道）。学前教育进入黄牌与 3.4 教师段收缩互为印证。</p>
-  <div id="chart-major" class="chart" style="height:300px"></div>
+  <div id="chart-major" class="chart chart-static"><div class="fw-h" style="--lbw:104px"><div class="fw-hgrid"><span style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.0000)"></span><span style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.2500)"></span><span style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.5000)"></span><span style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.7500)"></span><span style="left:calc(104px + 8px + (100% - 104px - 8px) * 1.0000)"></span></div><span class="fw-hmark" style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.8044)"></span><span class="fw-hmarklab" style="left:calc(104px + 8px + (100% - 104px - 8px) * 0.8044)">全国本科平均 6435</span><div class="fw-hrow"><span class="fw-hlb">微电子科学与工程</span><span class="fw-htrack"><span class="fw-hbar" style="width:97.68%;background:var(--ch-teal)"></span><span class="fw-hval" style="left:calc(97.68% + 6px)">7814</span></span></div><div class="fw-hrow"><span class="fw-hlb">电子科学与技术</span><span class="fw-htrack"><span class="fw-hbar" style="width:96.9%;background:var(--ch-teal)"></span><span class="fw-hval" style="left:calc(96.9% + 6px)">7752</span></span></div><div class="fw-hrow"><span class="fw-hlb">光电信息科学与工程</span><span class="fw-htrack"><span class="fw-hbar" style="width:94.06%;background:var(--ch-teal)"></span><span class="fw-hval" style="left:calc(94.06% + 6px)">7525</span></span></div><div class="fw-hrow"><span class="fw-hlb">材料科学与工程</span><span class="fw-htrack"><span class="fw-hbar" style="width:91.3%;background:var(--ch-teal)"></span><span class="fw-hval" style="left:calc(91.3% + 6px)">7304</span></span></div><div class="fw-hrow"><span class="fw-hlb">通信工程</span><span class="fw-htrack"><span class="fw-hbar" style="width:90.61%;background:var(--ch-teal)"></span><span class="fw-hval" style="left:calc(90.61% + 6px)">7249</span></span></div><div class="fw-hrow fw-haxis"><span></span><span class="fw-htrack"><span class="fw-haxval" style="left:0%">0</span><span class="fw-haxval" style="left:25%">2000</span><span class="fw-haxval" style="left:50%">4000</span><span class="fw-haxval" style="left:75%">6000</span><span class="fw-haxval" style="left:100%">8000</span></span></div></div>
+</div><!--/chart-major-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:-4px 0 10px">2025 届本科毕业半年后月收入靠前专业（元，麦可思 2026 版报告）；虚线为全国本科平均 6435 元。计算机科学与技术、软件工程 2025 届首次双双跌出前十。</p>
-  <div id="chart-further" class="chart" style="height:320px"></div>
+  <div id="chart-further" class="chart chart-static"><div class="fw-h" style="--lbw:58px"><div class="fw-hgrid"><span style="left:calc(58px + 8px + (100% - 58px - 8px) * 0.0000)"></span><span style="left:calc(58px + 8px + (100% - 58px - 8px) * 0.2500)"></span><span style="left:calc(58px + 8px + (100% - 58px - 8px) * 0.5000)"></span><span style="left:calc(58px + 8px + (100% - 58px - 8px) * 0.7500)"></span><span style="left:calc(58px + 8px + (100% - 58px - 8px) * 1.0000)"></span></div><div class="fw-hrow"><span class="fw-hlb">材料类</span><span class="fw-htrack"><span class="fw-hbar" style="width:81%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(81% + 6px)">32.4%</span></span></div><div class="fw-hrow"><span class="fw-hlb">医学</span><span class="fw-htrack"><span class="fw-hbar" style="width:71.25%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(71.25% + 6px)">28.5%</span></span></div><div class="fw-hrow"><span class="fw-hlb">农学</span><span class="fw-htrack"><span class="fw-hbar" style="width:70.25%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(70.25% + 6px)">28.1%</span></span></div><div class="fw-hrow"><span class="fw-hlb">理学</span><span class="fw-htrack"><span class="fw-hbar" style="width:67.25%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(67.25% + 6px)">26.9%</span></span></div><div class="fw-hrow"><span class="fw-hlb">历史学</span><span class="fw-htrack"><span class="fw-hbar" style="width:57%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(57% + 6px)">22.8%</span></span></div><div class="fw-hrow"><span class="fw-hlb">法学</span><span class="fw-htrack"><span class="fw-hbar" style="width:52.75%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(52.75% + 6px)">21.1%</span></span></div><div class="fw-hrow"><span class="fw-hlb">工学</span><span class="fw-htrack"><span class="fw-hbar" style="width:52.75%;background:var(--ch-green)"></span><span class="fw-hval" style="left:calc(52.75% + 6px)">21.1%</span></span></div><div class="fw-hrow fw-haxis"><span></span><span class="fw-htrack"><span class="fw-haxval" style="left:0%">0</span><span class="fw-haxval" style="left:25%">10</span><span class="fw-haxval" style="left:50%">20</span><span class="fw-haxval" style="left:75%">30</span><span class="fw-haxval" style="left:100%">40</span></span></div></div>
+</div><!--/chart-further-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:-4px 0 10px">2022 届本科境内读研率（%，麦可思）：材料类 32.4%、医学 28.5%、农学 28.1%、理学 26.9% 居前；分院校层次，双一流 37.0%、双非 14.1%——读研意愿高度集中在"牌照型+研发型"专业与头部院校。</p>
   <p><b>小结：</b>生化环材农不是不能读，而是——①本科直接就业出口差，想做研发，读研是刚需；②读研按"具体课题组出口"决策，绝不按专业名字决策；③优先选与计算、AI、半导体、新能源结合的细分，把自己变成"天坑专业 + 扩张技能"的复合体，而不是传统方向的纯湿实验/田间劳动力。</p>
 
@@ -855,7 +990,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     <tr><td>高中</td><td>2029</td><td>普职融通与高中阶段毛入学率继续提升（2024 年约 92.6%）是短期缓冲，但空间已有限</td></tr>
     <tr><td>高等教育</td><td>2032</td><td>2035 年后明显减少，2039 年前后深度洗牌；民办本科、高职已先行缺额降分<sup class="ref"><a href="#ref34">[34]</a></sup></td></tr>
   </table></div>
-  <div id="chart-primary" class="chart" style="height:300px"></div>
+  <div id="chart-primary" class="chart chart-static"><div class="fw-unit">万人</div><div class="fw-v" style="--ph:230px;--ybw:40px"><div class="fw-axl"><span style="bottom:100%">2000</span><span style="bottom:75%">1500</span><span style="bottom:50%">1000</span><span style="bottom:25%">500</span><span style="bottom:0%">0</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:25%"></span><span class="fw-gl" style="bottom:50%"></span><span class="fw-gl" style="bottom:75%"></span><span class="fw-gl" style="bottom:100%"></span><span class="fw-bar" style="left:12.5%;width:44px;height:93.89%;background:var(--ch-teal)"></span><span class="fw-val" style="left:12.5%;bottom:calc(93.89% + 3px)">1877.88</span><span class="fw-bar" style="left:37.5%;width:44px;height:80.83%;background:var(--ch-teal)"></span><span class="fw-val" style="left:37.5%;bottom:calc(80.83% + 3px)">1616.63</span><span class="fw-bar" style="left:62.5%;width:44px;height:73.09%;background:var(--ch-teal)"></span><span class="fw-val" style="left:62.5%;bottom:calc(73.09% + 3px)">1461.74</span><span class="fw-bar" style="left:87.5%;width:44px;height:61.7%;background:var(--ch-sand)"></span><span class="fw-val" style="left:87.5%;bottom:calc(61.7% + 3px)">1234</span></div></div><div class="fw-v fw-xl" style="--ybw:40px"><div></div><div class="fw-xrow"><span class="" style="left:12.5%">2023 实际</span><span class="" style="left:37.5%">2024 实际</span><span class="" style="left:62.5%">2025 实际</span><span class="" style="left:87.5%">2026 估算</span></div></div>
+</div><!--/chart-primary-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:-4px 0 10px">全国普通小学招生（万人，教育部公报；2026 年为秦玉友等学者依据出生队列与毛入学率估算，方法论为队列要素法<sup class="ref"><a href="#ref23">[23]</a></sup>，非官方实际招生数，教育部实际数将于 2027 年 6–7 月公报发布后更新）。</p>
   <p><b>机制必须讲对：中学、高校"看起来稳"，主因是人口波沿学制逐段传导存在 3–9 年的物理时滞（小学 2023 达峰后，初中 2026、高中 2029、高校 2032 依次达峰），叠加升学率提升与扩招对冲，与延迟退休无关。</b>教师招聘有两个引擎——生源扩张带来的<b>新增岗</b>、老教师退休腾出的<b>更替岗（退一补一）</b>：生源下行关掉第一个，2025 年起渐进式延迟退休关掉第二个。<b>延迟退休保护的是在岗教师（系统不用裁员、师生比自然回落），对新求职者是招聘名额双杀，不是缓冲</b>；而且它不分学段，小学、幼儿园女教师占比更高，受影响不比中学小。<span class="tag tag-mid">中高可信 · 制度逻辑 + 学术研究 + 地方实证</span>（郭甯 2025 论文明确"事业编岗位弹性小、流动性弱，延迟退休留置必然挤占青年就业空间"；鄂州市编制总量锁死 8850 名、"进一个退一个"、当年小学一个不招；寿光文件承认 50 岁以上教师占 40%、延迟退休将加剧<sup class="ref"><a href="#ref55">[56]</a></sup><sup class="ref"><a href="#ref56">[57]</a></sup>）</p>
   <p><b>冲击已在供给端显形</b><span class="tag tag-fact">高可信 · 已查证</span>：2026 年河南地方公费师范生和"优师计划"计划招生仅 1117 人、较 2025 年缩减 51.3%，并不再招收学前教育专科地方公费师范生；江苏 2026 年上半年中小学教资笔试报名降至 13.7 万、较三年前减少近 7 万；湖南桃江明确除高中外小学、初中教师均已超需求，暂停初中起点公费师范生培养；多所幼儿师专三年内清零学前教育专业、师范院校收缩师范专业转办工科；学校层面则通过"教师资源周转池"跨学科分流余缺师资<sup class="ref"><a href="#ref33">[33]</a></sup>。冲击顺序是"<b>农村→县城→大城市、尾部院校→头部院校</b>"（教育部称"时空错配"）：省会和大城市头部学校短期仍在抬高门槛（"国优计划"硕博进中学），但这是存量腾岗的最后窗口；高校段，民办本科 2025 年已多次征集志愿、降分 30–40 分仍缺额（广东个别校缺额超 2000），2026 年广东专科补录资格线降到 160 分民办院校仍缺，而公办高职部分专业反而涨分——院校分化已经开始<sup class="ref"><a href="#ref34">[34]</a></sup>。</p>
@@ -1148,7 +1288,12 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   <p class="hint">两个口径是同一制度的两个侧面：当期靠统筹互济+财政补贴+全国统筹调剂发得出，但个人账户历史空账/隐性债务并未消失。</p>
 
   <h4>穿底的趋势长什么样</h4>
-  <div id="chart-pension" class="chart"></div>
+  <div id="chart-pension" class="chart chart-static"><div class="fw-unit">缴费者 / 领取者</div><div class="fw-v" style="--ph:240px;--ybw:34px"><div class="fw-axl"><span style="bottom:100%">3</span><span style="bottom:83.33%">2.5</span><span style="bottom:66.67%">2</span><span style="bottom:50%">1.5</span><span style="bottom:33.33%">1</span><span style="bottom:16.67%">0.5</span><span style="bottom:0%">0</span></div><div class="fw-plot"><span class="fw-gl" style="bottom:0%"></span><span class="fw-gl" style="bottom:16.67%"></span><span class="fw-gl" style="bottom:33.33%"></span><span class="fw-gl" style="bottom:50%"></span><span class="fw-gl" style="bottom:66.67%"></span><span class="fw-gl" style="bottom:83.33%"></span><span class="fw-gl" style="bottom:100%"></span><span class="fw-mline dashed" style="bottom:33.33%;border-top-color:var(--ch-clay)"></span><span class="fw-mlab" style="bottom:calc(33.33% + 4px);left:4px;color:var(--ch-clay)">平衡线 1.0（低于即倒挂）</span><span class="fw-mline v dotted" style="left:31.43%;border-left-color:var(--ch-sand)"></span><span class="fw-mlab v" style="left:31.43%;color:var(--ch-sand)">2036 当期收不抵支</span><span class="fw-mline v dotted" style="left:54.29%;border-left-color:var(--ch-clay)"></span><span class="fw-mlab v" style="left:54.29%;color:var(--ch-clay)">2044 累计结余耗尽</span><svg class="fw-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="0.000,11.000 100.000,70.333 100.000,100 0.000,100" fill="rgba(36,86,90,0.08)"/><polyline points="0.000,11.000 100.000,70.333" fill="none" stroke="var(--ch-teal)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg><span class="fw-dot" style="left:0%;bottom:89%;width:9px;height:9px;background:var(--ch-teal)"></span><span class="fw-val el" style="left:0%;bottom:calc(89% + 7px)">2.67</span><span class="fw-dot" style="left:100%;bottom:29.67%;width:9px;height:9px;background:var(--ch-teal)"></span><span class="fw-val er" style="left:100%;bottom:calc(29.67% + 7px)">0.89 (1:1.12)</span></div></div><div class="fw-v fw-xl" style="--ybw:34px"><div></div><div class="fw-xrow"><span class="el" style="left:0%">2025</span><span class="" style="left:14.29%">2030</span><span class="" style="left:28.57%">2035</span><span class="" style="left:42.86%">2040</span><span class="" style="left:57.14%">2045</span><span class="" style="left:71.43%">2050</span><span class="" style="left:85.71%">2055</span><span class="er" style="left:100%">2060</span></div></div>
+</div><!--/chart-pension-->
+
+
+
+
   <p class="note" style="font-size:12.5px;color:var(--muted);margin:0 0 10px">图：每个退休者对应的在职缴费者，从 2025 年约 2.67 降至 2060 年约 0.89（即 1:1.12，按 90% 遵缴率测算，郑秉文团队）<sup class="ref"><a href="#ref29">[29]</a></sup>。两端点为实测/精算口径、中间为线性趋势示意；跌破 1.0（平衡线）即"倒挂"。竖线：2036 年当期收不抵支、2044 年累计结余耗尽<sup class="ref"><a href="#ref26">[26]</a></sup>——延迟退休把时点后移约 8–9 年，但未消除。</p>
 
   <h4>NDC 为什么没解决</h4>
@@ -1522,8 +1667,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   <button class="btn" id="nextbtn">下一篇</button>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<script src="vendor/qrcode.min.js" defer></script>
 <script>
 (function(){
   var t=localStorage.getItem('ryyj-theme')||'light';
@@ -1535,9 +1679,19 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
     var nx=cur==='light'?'dark':'light';
     document.documentElement.setAttribute('data-theme',nx);
     localStorage.setItem('ryyj-theme',nx);
-    syncSwitch();renderCharts();
+    syncSwitch();
   };
   syncSwitch();
+})();
+/* P0 · 微信内置浏览器兜底提示：只在 MicroMessenger 里显示，可关闭（本次会话内不再出现） */
+(function(){
+  if(!/MicroMessenger/i.test(navigator.userAgent))return;
+  var tip=document.getElementById('mmTip');if(!tip)return;
+  var closed=false;try{closed=sessionStorage.getItem('mm-tip-closed')==='1';}catch(e){}
+  if(closed)return;
+  tip.removeAttribute('hidden');
+  var x=document.getElementById('mmTipX');
+  if(x)x.addEventListener('click',function(){tip.setAttribute('hidden','');try{sessionStorage.setItem('mm-tip-closed','1');}catch(e){}});
 })();
 (function(){
   var b=document.getElementById('tocbtn'),nav=document.getElementById('toc'),mask=document.getElementById('toc-mask');
@@ -1677,145 +1831,6 @@ function toast(msg){
     if(e.key==='Escape'&&e.target===input){input.blur();}
   });
 })();
-var charts=[];
-function colors(){
-  var d=document.documentElement.getAttribute('data-theme')==='dark';
-  return {ink:d?'#e8e4da':'#2a2723',muted:d?'#a9a294':'#837d72',grid:d?'#2e3338':'#e6dfd1'};
-}
-function renderCharts(){
-  charts.forEach(function(c){c.dispose();});charts=[];
-  var c=colors();
-  var el=document.getElementById('chart-debt');
-  if(el){
-    var ch=echarts.init(el);
-    ch.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:20,top:36,bottom:8,containLabel:true},
-      legend:{show:false},
-      tooltip:{},
-      xAxis:{type:'category',data:['日 IMF','日 日方','日 达利欧','中 全口径IMF','中 BIS','中 显性'],axisLabel:{color:c.ink,fontSize:11,interval:0,rotate:18}},
-      yAxis:{type:'value',name:'政府债务/GDP %',axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      series:[{type:'bar',data:[204.4,260,215,106.9,85,60],itemStyle:{color:function(p){return p.dataIndex<3?'#7a6f60':'#24565a';}},barWidth:26,label:{show:true,position:'top',color:c.muted,fontSize:11}}]
-    });
-    charts.push(ch);
-  }
-  var elBirth=document.getElementById('chart-birth');
-  if(elBirth){
-    var chB=echarts.init(elBirth);
-    chB.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:24,top:30,bottom:8,containLabel:true},
-      tooltip:{trigger:'axis'},
-      xAxis:{type:'category',data:['2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'value',name:'万人',min:600,axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      series:[{type:'line',data:[1786,1723,1523,1465,1200,1062,956,902,954,792],smooth:false,symbolSize:7,lineStyle:{width:2.5,color:'#24565a'},itemStyle:{color:'#24565a'},label:{show:true,position:'top',color:c.muted,fontSize:10},areaStyle:{color:'rgba(36,86,90,0.08)'},markPoint:{symbolSize:46,data:[{coord:['2025',792],value:'新低',itemStyle:{color:'#9c5a4a'},label:{color:'#fff',fontSize:10}}]}}]
-    });
-    charts.push(chB);
-  }
-  var elGrad=document.getElementById('chart-grad');
-  if(elGrad){
-    var chG=echarts.init(elGrad);
-    chG.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:20,top:40,bottom:8,containLabel:true},
-      legend:{show:true,top:4,textStyle:{color:c.ink,fontSize:11}},
-      tooltip:{trigger:'axis'},
-      xAxis:{type:'category',data:['2023','2024','2025','2026'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'value',name:'万人',axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      series:[
-        {name:'硕士统考报名',type:'bar',data:[474,438,388,343],barWidth:22,itemStyle:{color:'#7a6f60'},label:{show:true,position:'top',color:c.muted,fontSize:10}},
-        {name:'硕士录取（含推免）',type:'bar',data:[114.84,118.57,123.68,{value:null}],barWidth:22,itemStyle:{color:'#24565a'},label:{show:true,position:'top',color:c.muted,fontSize:10,formatter:function(p){return p.value?p.value:'';}}}
-      ]
-    });
-    charts.push(chG);
-  }
-  var elSal=document.getElementById('chart-salary');
-  if(elSal){
-    var chS=echarts.init(elSal);
-    chS.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:30,top:40,bottom:8,containLabel:true},
-      legend:{show:true,top:4,textStyle:{color:c.ink,fontSize:11}},
-      tooltip:{trigger:'axis'},
-      xAxis:{type:'category',data:['专科','本科','硕士','博士'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      yAxis:[{type:'value',name:'起薪(元)',axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},{type:'value',name:'增速(%)',min:0,max:14,axisLabel:{color:c.muted,formatter:'{value}%'},splitLine:{show:false}}],
-      series:[
-        {name:'2019届月起薪',type:'bar',data:[3548,5417,8778,13849],barWidth:34,itemStyle:{color:'#24565a'},label:{show:true,position:'top',color:c.muted,fontSize:10}},
-        {name:'2003–2021年均增速',type:'line',yAxisIndex:1,data:[{value:6.1},{value:7.8},{value:7.0},{value:9.0,label:{formatter:'>9%'}}],symbolSize:8,lineStyle:{width:2.5,color:'#b07a3d'},itemStyle:{color:'#b07a3d'},label:{show:true,position:'top',color:'#b07a3d',fontSize:10,formatter:function(p){return p.dataIndex===3?'>9%':p.value+'%';}}}
-      ]
-    });
-    charts.push(chS);
-  }
-  var elPri=document.getElementById('chart-primary');
-  if(elPri){
-    var chP=echarts.init(elPri);
-    chP.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:20,top:36,bottom:8,containLabel:true},
-      legend:{show:false},
-      tooltip:{trigger:'axis'},
-      xAxis:{type:'category',data:['2023 实际','2024 实际','2025 实际','2026 估算'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'value',name:'万人',min:0,axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      series:[{type:'bar',data:[{value:1877.88,itemStyle:{color:'#24565a'}},{value:1616.63,itemStyle:{color:'#24565a'}},{value:1461.74,itemStyle:{color:'#24565a'}},{value:1234,itemStyle:{color:'#b08d57'}}],barWidth:44,label:{show:true,position:'top',color:c.muted,fontSize:11}}]
-    });
-    charts.push(chP);
-  }
-  var elMaj=document.getElementById('chart-major');
-  if(elMaj){
-    var chM=echarts.init(elMaj);
-    chM.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:40,top:24,bottom:8,containLabel:true},
-      legend:{show:false},
-      tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
-      xAxis:{type:'value',min:0,max:8000,axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'category',data:['通信工程','材料科学与工程','光电信息科学与工程','电子科学与技术','微电子科学与工程'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      series:[{type:'bar',data:[7249,7304,7525,7752,7814],barWidth:16,itemStyle:{color:'#24565a'},label:{show:true,position:'right',color:c.muted,fontSize:10},markLine:{symbol:'none',lineStyle:{color:'#9c5a4a',type:'dashed'},label:{rotate:0,color:'#9c5a4a',fontSize:10,position:'insideEndTop'},data:[{xAxis:6435,label:{formatter:'全国本科平均 6435'}}]}}]
-    });
-    charts.push(chM);
-  }
-  var elFur=document.getElementById('chart-further');
-  if(elFur){
-    var chF=echarts.init(elFur);
-    chF.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:42,top:24,bottom:8,containLabel:true},
-      legend:{show:false},
-      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
-      xAxis:{type:'value',min:0,max:40,axisLabel:{color:c.muted,formatter:'{value}%'},splitLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'category',data:['工学','法学','历史学','理学','农学','医学','材料类'],axisLabel:{color:c.ink,fontSize:11},axisLine:{lineStyle:{color:c.grid}}},
-      series:[{type:'bar',data:[21.1,21.1,22.8,26.9,28.1,28.5,32.4],barWidth:14,itemStyle:{color:'#6f8a6a'},label:{show:true,position:'right',color:c.muted,fontSize:10,formatter:'{c}%'}}]
-    });
-    charts.push(chF);
-  }
-  var elPen=document.getElementById('chart-pension');
-  if(elPen){
-    var chN=echarts.init(elPen);
-    chN.setOption({
-      textStyle:{fontFamily:'inherit',color:c.ink},
-      grid:{left:8,right:34,top:42,bottom:8,containLabel:true},
-      legend:{show:false},
-      tooltip:{trigger:'axis'},
-      xAxis:{type:'value',name:'年份',min:2025,max:2060,interval:5,axisLabel:{color:c.ink,fontSize:11},splitLine:{lineStyle:{color:c.grid}},axisLine:{lineStyle:{color:c.grid}}},
-      yAxis:{type:'value',name:'缴费者/领取者',min:0,max:3,axisLabel:{color:c.muted},splitLine:{lineStyle:{color:c.grid}}},
-      series:[{
-        name:'制度抚养比',type:'line',
-        data:[[2025,2.67],[2060,0.89]],
-        symbolSize:9,lineStyle:{width:2.5,color:'#24565a'},itemStyle:{color:'#24565a'},
-        areaStyle:{color:'rgba(36,86,90,0.08)'},
-        label:{show:true,position:'top',color:c.muted,fontSize:10,formatter:function(p){return p.dataIndex===0?'2.67':'0.89 (1:1.12)';}},
-        markLine:{symbol:'none',silent:true,data:[
-          {yAxis:1.0,lineStyle:{color:'#9c5a4a',type:'dashed'},label:{color:'#9c5a4a',fontSize:10,formatter:'平衡线 1.0（低于即倒挂）',position:'insideStartTop'}},
-          {xAxis:2036,lineStyle:{color:'#b08d57',type:'dotted'},label:{color:'#b08d57',fontSize:10,rotate:90,formatter:'2036 当期收不抵支',position:'insideEndBottom'}},
-          {xAxis:2044,lineStyle:{color:'#9c5a4a',type:'dotted'},label:{color:'#9c5a4a',fontSize:10,rotate:90,formatter:'2044 累计结余耗尽',position:'insideEndBottom'}}
-        ]}
-      }]
-    });
-    charts.push(chN);
-  }
-}
-window.addEventListener('resize',function(){charts.forEach(function(c){c.resize();});});
-renderCharts();
 
 /* ===== 分享菜单 ===== */
 (function(){

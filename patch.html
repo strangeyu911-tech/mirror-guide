@@ -44,6 +44,15 @@ a:hover{text-decoration:underline}
 p,li,td,th,h1,h2,h3,h4,a{overflow-wrap:anywhere;word-break:break-word}
 .wrap{max-width:var(--content-w);margin:0 auto;padding:0 22px}
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--teal);z-index:999;transition:width .1s}
+/* P0 · 微信内置浏览器兜底提示（仅 MicroMessenger UA 显示，默认 hidden） */
+.mm-tip{background:#fff6e0;border-bottom:1px solid #e8d9b5;color:#6b5528;font-size:13.5px;line-height:1.65}
+.mm-tip[hidden]{display:none}
+.mm-tip .mm-in{max-width:880px;margin:0 auto;padding:9px 22px;display:flex;gap:9px;align-items:flex-start}
+.mm-tip .mm-ic{flex:0 0 auto;line-height:1.5}
+.mm-tip b{font-weight:700}
+.mm-tip .mm-x{margin-left:auto;flex:0 0 auto;border:0;background:transparent;color:inherit;opacity:.6;font-size:18px;line-height:1;cursor:pointer;padding:0 2px;font-family:inherit}
+.mm-tip .mm-x:hover,.mm-tip .mm-x:focus{opacity:1}
+html[data-theme="dark"] .mm-tip{background:#2a2419;border-bottom-color:#4a3f28;color:#e0cf9f}
 /* 顶部导航 */
 .topbar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);z-index:900}
 .topbar .in{display:flex;align-items:stretch;height:var(--bar-h)}
@@ -246,6 +255,15 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 </head>
 <body>
 <div id="progress"></div>
+
+<!-- P0 · 微信内置浏览器兜底提示：仅在 MicroMessenger 里由脚本显示 -->
+<div class="mm-tip" id="mmTip" role="note" hidden>
+  <div class="mm-in">
+    <span class="mm-ic" aria-hidden="true">&#9888;&#65039;</span>
+    <span>微信内置浏览器偶发加载异常。若本页<b>图表或图片显示不全</b>，请点右上角 <b>&#183;&#183;&#183;</b> &#8594; <b>在浏览器打开</b>。</span>
+    <button class="mm-x" type="button" id="mmTipX" aria-label="关闭提示">&#215;</button>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="in">
@@ -1150,7 +1168,7 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
 </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="vendor/qrcode.min.js" defer></script>
 <script>
 /* 主题 */
 (function(){
@@ -1161,6 +1179,16 @@ abbr.term:hover{border-bottom-color:var(--teal);color:var(--teal)}
   tb.onclick=function(){var c=document.documentElement.getAttribute('data-theme'),n=c==='light'?'dark':'light';
     document.documentElement.setAttribute('data-theme',n);localStorage.setItem('ryyj-theme',n);sync();};
   sync();
+})();
+/* P0 · 微信内置浏览器兜底提示：只在 MicroMessenger 里显示，可关闭（本次会话内不再出现） */
+(function(){
+  if(!/MicroMessenger/i.test(navigator.userAgent))return;
+  var tip=document.getElementById('mmTip');if(!tip)return;
+  var closed=false;try{closed=sessionStorage.getItem('mm-tip-closed')==='1';}catch(e){}
+  if(closed)return;
+  tip.removeAttribute('hidden');
+  var x=document.getElementById('mmTipX');
+  if(x)x.addEventListener('click',function(){tip.setAttribute('hidden','');try{sessionStorage.setItem('mm-tip-closed','1');}catch(e){}});
 })();
 /* 阅读进度 */
 window.addEventListener('scroll',function(){
