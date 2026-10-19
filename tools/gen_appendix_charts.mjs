@@ -335,8 +335,19 @@ function fig3() {
       badge(pts[iPeak].x, pts[iPeak].y + 7, `${YRS[iPeak]} 峰 ${Math.round(series[iPeak].v)} 万`);
 
     const xlabels = [2000, 2010, 2020, 2030, 2040, 2050].map((y) => ({ x: xL(y - YRS[0], n), t: y }));
+
+    /* 悬停读数：连续贴边轴，列边界取相邻点中点（同图 2）。
+       实测年与推算年在气泡里用词分开 —— 与图上实线/虚线的区分一致。 */
+    const hover = hoverLayer(series.map((d, i) => {
+      const l = i === 0 ? 0 : (xL(i - 1, n) + xL(i, n)) / 2;
+      const r = i === n - 1 ? 100 : (xL(i, n) + xL(i + 1, n)) / 2;
+      const t = [`${d.y} 年`, d.real ? `实测 ${Math.round(d.v)} 万` : `推算 ${Math.round(d.v)} 万`];
+      if (!d.real && d.up != null) t.push(`上界 ${Math.round(d.up)} 万`);
+      return { x: l, w: r - l, t };
+    }));
+
     return `<div class="ap-unit">${unitLabel}</div>` +
-      frame({ ph: 250, ybw: 44, min: 0, max, ticks, fmt: (v) => Math.round(v), inner, xlabels });
+      frame({ ph: 250, ybw: 44, min: 0, max, ticks, fmt: (v) => Math.round(v), inner, xlabels, hover });
   }
 
   const paneUG = pane(ug, { unitLabel: '万人 · 本科毕业生' });
@@ -386,10 +397,17 @@ function fig4() {
   const xlabels = [0, 5, 10, 15, 19].map((i) => ({ x: xB(i, n), t: ys[i] }));
   const so = (y) => SO.employed[soIdx(y)];
 
+  /* 悬停读数：一年一列（同图 1）。柱子上不印数值是手机宽度的取舍，
+     悬停气泡把每年的两个数都补回来。 */
+  const hover = hoverLayer(ys.map((y, i) => ({
+    x: xB(i, n) - gw / 2, w: gw,
+    t: [`${y} 年`, `国有单位 ${SO.employed[soIdx(y)]} 万`, `私营企业 ${PR.employed[i]} 万`],
+  })));
+
   return legend([
     { c: C.teal, t: `城镇国有单位就业人员　${so(2000)} → ${so(2019)}` },
     { c: C.taupe, t: `城镇私营企业就业人员　${PR.employed[0]} → ${PR.employed[n - 1]}` },
-  ]) + frame({ ph: 250, ybw: 44, min: 0, max, ticks, fmt: (v) => v, inner: bars, xlabels });
+  ]) + frame({ ph: 250, ybw: 44, min: 0, max, ticks, fmt: (v) => v, inner: bars, xlabels, hover });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -419,13 +437,31 @@ function fig5() {
 
   const xlabels = [0, 5, 10, 15, 19].map((i) => ({ x: xB(i, n), t: ys[i] }));
 
+  /* 悬停读数：类目轴一年一列（同图 1/4）。四个绘图区各配一套，
+     气泡内容随面板口径走。数值一律 Math.round —— 底稿是万位小数，气泡里读整数就够。 */
+  const gw5 = 100 / n;
+  const hcol = (i, t) => ({ x: xB(i, n) - gw5 / 2, w: gw5, t });
+  const hover1 = hoverLayer(ys.map((y, i) =>
+    hcol(i, [`${y} 年`, `公务员（近似）${Math.round(gov[i])} 万`])));
+  const hover2 = hoverLayer(ys.map((y, i) =>
+    hcol(i, [
+      `${y} 年`,
+      `事业编（近似）合计 ${Math.round(inst[i])} 万`,
+      `其中：教育 ${Math.round(S.education[i])} 万`,
+      `其中：卫生 ${Math.round(S.health[i])} 万`,
+    ])));
+  const hoverTop = hoverLayer(ys.map((y, i) =>
+    hcol(i, [`${y} 年`, `公务员 ${Math.round(gov[i])} 万`, `事业编 ${Math.round(inst[i])} 万`])));
+  const hoverBottom = hoverLayer(ys.map((y, i) =>
+    hcol(i, [`${y} 年`, `合计 ${Math.round(total[i])} 万`])));
+
   /* ① 只看公务员 */
   const sc1 = niceScale(Math.max(...gov), 4);
   const p1 =
     `<div class="ap-unit">万人 · 公共管理、社会保障和社会组织</div>` +
     frame({
       ph: 230, ybw: 44, min: 0, max: sc1.max, ticks: sc1.ticks, fmt: (v) => v,
-      inner: lineInner(gov, sc1.max, C.teal, { startTag: true }), xlabels,
+      inner: lineInner(gov, sc1.max, C.teal, { startTag: true }), xlabels, hover: hover1,
     });
 
   /* ② 只看事业编：教育 / 卫生 两条细线 + 合计粗线 */
@@ -448,7 +484,7 @@ function fig5() {
       { c: C.taupe, t: '其中：教育', dash: true },
       { c: C.sand, t: '其中：卫生和社会工作', dash: true },
     ]) +
-    frame({ ph: 230, ybw: 44, min: 0, max: sc2.max, ticks: sc2.ticks, fmt: (v) => v, inner: inner2, xlabels });
+    frame({ ph: 230, ybw: 44, min: 0, max: sc2.max, ticks: sc2.ticks, fmt: (v) => v, inner: inner2, xlabels, hover: hover2 });
 
   /* ③ 两者合计：上下两个小图共享横轴 —— 上图比规模，下图看总量趋势。
      ⚠️ 上下两帧之间必须留 margin：「2019 口径」竖线标签只有上图有，
@@ -467,6 +503,7 @@ function fig5() {
         dot(gP[n - 1].x, gP[n - 1].y, C.teal, 7) + dot(iP2[n - 1].x, iP2[n - 1].y, C.green, 7) +
         tag(gP[n - 1].x, gP[n - 1].y + 4.6, Math.round(gov[n - 1]), C.teal) +
         tag(iP2[n - 1].x, iP2[n - 1].y + 4.4, Math.round(inst[n - 1]), C.green),
+      hover: hoverTop,
     });
   const scSum = niceScale(Math.max(...total), 5);
   const tP = ptsOf(total, scSum.max);
@@ -484,6 +521,7 @@ function fig5() {
         dot(tP[0].x, tP[0].y, C.gold, 8) + tag(tP[0].x, tP[0].y + 4.2, Math.round(total[0]), C.gold) +
         dot(tP[n - 1].x, tP[n - 1].y, C.gold, 8) +
         tag(tP[n - 1].x, tP[n - 1].y + 4.2, Math.round(total[n - 1]), C.gold),
+      hover: hoverBottom,
     }) + `</div>`;
   const xrow = `<div class="ap-xl" style="--ybw:44px"><div></div><div class="ap-xrow">` +
     xlabels.map((l) => `<span class="${edge(l.x)}" style="left:${pct(l.x)}">${l.t}</span>`).join('') +
@@ -516,7 +554,9 @@ ${CSS_BEGIN}
 .ap-unit{font-size:11.5px;color:var(--muted);margin:0 0 6px}
 .ap-lg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:0 0 8px}
 .ap-lg i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.ap-lg i.dash{height:0;border-top:2px dashed;background:none!important}
+/* 虚线样本必须够宽（24px）：14px 的样本上 2px dashed 只能显出一小段，
+   看起来就是根实线短横 —— 用户分不清「实测实线 / 推算虚线」（2026-10-19 踩中） */
+.ap-lg i.dash{width:24px;height:0;border-top:2px dashed;background:none!important}
 .ap-frame{display:grid;grid-template-columns:var(--ybw,44px) 1fr;gap:0 8px}
 .ap-axl,.ap-plot{position:relative;height:var(--ph,240px)}
 .ap-axl span{position:absolute;right:0;transform:translateY(50%);font-size:11px;color:var(--muted);white-space:nowrap;line-height:1}
