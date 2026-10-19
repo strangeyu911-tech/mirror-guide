@@ -117,7 +117,11 @@ const vline = (x, text = '') =>
 const legend = (items) =>
   `<div class="ap-lg">${items
     .map((i) => `<span><i class="${i.dash ? 'dash' : ''}" style="${i.dash
-      ? `color:${i.c};border-top-color:${i.c}`
+      /* 虚线小样只设 color，图案由 CSS 的 repeating-linear-gradient 用 currentColor 画 ——
+         ⚠️ 别改回 border-top:2px dashed：Chrome 在这种 2px 高、带圆角的小元素上
+         会把 dashed 边框直接画成实线（计算样式仍是 dashed，像素是实的），
+         2026-10-19 用户三次反馈「看不出虚线」的真根源就是它 */
+      ? `color:${i.c}`
       : `background:${i.c};opacity:${i.op == null ? 1 : i.op}`}"></i>${i.t}</span>`)
     .join('')}</div>`;
 
@@ -347,7 +351,7 @@ function fig3() {
       /* ⚠️ 虚线图案别小于 8 5：non-scaling-stroke 下 dasharray 按**屏幕像素**解释，
          5 3 骑在细线上 100% 缩放时被抗锯齿糊成「看着像实线」（2026-10-19 用户反馈，
          150% 才看得出来）。加大图案 + 加粗到 2.8 才撑得开。 */
-      poly(botProj, C.teal, { w: 2.8, dash: '8 5' }) +
+      poly(botProj, C.teal, { w: 3, dash: '10 7' }) +
       poly(upProj, C.teal, { w: 1.4, dash: '2 3', op: 0.75 }) +
       `</svg>` +
       (showSplit ? vline(splitX, '推算 →') : '') +
@@ -493,8 +497,9 @@ function fig5() {
      读者会去找一条根本不存在的线。 */
   const inner2 =
     `<svg class="ap-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">` +
-    /* 虚线图案 8 6 / 加粗到 2.3：同图 3 的坑，5 4 在 100% 缩放下糊成实线 */
-    poly(eP, C.taupe, { w: 2.3, dash: '8 6', op: 0.9 }) + poly(hP, C.sand, { w: 2.3, dash: '8 6', op: 0.9 }) +
+    /* 虚线图案 10 7 / 2.5px：non-scaling-stroke 下 dasharray 按屏幕像素解释，
+       图案太小 100% 缩放会糊成实线（用户两轮反馈后才到位） */
+    poly(eP, C.taupe, { w: 2.5, dash: '10 7', op: 0.9 }) + poly(hP, C.sand, { w: 2.5, dash: '10 7', op: 0.9 }) +
     poly(iP, C.green, { w: 2.6 }) + `</svg>` +
     iP.map((q) => dot(q.x, q.y, C.green, 5)).join('') +
     vline(bx, '2019 口径') +
@@ -583,9 +588,10 @@ ${CSS_BEGIN}
 .ap-unit{font-size:11.5px;color:var(--muted);margin:0 0 6px}
 .ap-lg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin:0 0 8px}
 .ap-lg i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-/* 虚线样本必须够宽（24px）：14px 的样本上 2px dashed 只能显出一小段，
-   看起来就是根实线短横 —— 用户分不清「实测实线 / 推算虚线」（2026-10-19 踩中） */
-.ap-lg i.dash{width:24px;height:0;border-top:2px dashed;background:none!important}
+/* 虚线小样：repeating-linear-gradient 用 currentColor 画 9px 实 / 6px 空，
+   逐像素确定 —— CSS dashed 边框在 2px 高的小元素上会被 Chrome 画成实线（踩过）。
+   宽度 26px 能显出近两段虚线，一眼可辨。 */
+.ap-lg i.dash{width:26px;height:2.5px;border:0!important;border-radius:0;background:repeating-linear-gradient(90deg,currentColor 0 9px,transparent 9px 15px)!important}
 .ap-frame{display:grid;grid-template-columns:var(--ybw,44px) 1fr;gap:0 8px}
 .ap-axl,.ap-plot{position:relative;height:var(--ph,240px)}
 .ap-axl span{position:absolute;right:0;transform:translateY(50%);font-size:11px;color:var(--muted);white-space:nowrap;line-height:1}
