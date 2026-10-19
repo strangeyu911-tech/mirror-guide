@@ -267,30 +267,49 @@ function deriveGrad() {
   const G = D.graduates;
   const BIRTH = {};
   D.population.years.forEach((y, i) => { BIRTH[y] = D.population.births[i]; });
-  const LAST_BIRTH = 2025;
-  const HOLD = BIRTH[LAST_BIRTH];                 // 792 万，2026 起按此持平
-  const cohort = (y) => (BIRTH[y] != null ? BIRTH[y] : HOLD);
-
-  // 锚点：分母是"毕业年份 − 学制"那一年的出生人口
-  const R_UG = G.undergrad[25] / BIRTH[2025 - 22];   // 523.06 / 1599 = 32.71%
-  const R_PG = G.postgrad[25] / BIRTH[2025 - 25];    // 116.65 / 1771 = 6.59%
-  const LAG_UG = 22, LAG_PG = 25;
-  const END = 2050, Y0 = 2000;
+  const Y0 = 2000, END = 2050;
   const n = END - Y0 + 1;
   const YRS = Array.from({ length: n }, (_, i) => Y0 + i);
+  const LAG_UG = 22, LAG_PG = 25;
 
-  // 上界：转化率 2026→2050 线性升到 1.35 倍（适龄人口塌下来时高校不会等比缩招）
-  const RAMP_END = 2050, RAMP = 0.35;
-  const upFactor = (y) => 1 + RAMP * Math.min(1, Math.max(0, (y - 2026) / (RAMP_END - 2026)));
+  /* 招生序列（万），与 graduates.years 同年架（2000 起）。 */
+  const EU = G.enrol_undergrad, EP = G.enrol_postgrad;
+  const E0 = G.years[0];
+  const EUm = (y) => EU[y - E0];
+  const EPm = (y) => EP[y - E0];
 
-  const proj = (arr, idx, lag, R) =>
+  /* —— 近段（2026–2030）：招生管道模型 ——
+     毕业生(y) ≈ 招生(y − 学制) × 转化比，转化比取近四年实测毕业生与
+     学制前招生之比的均值（数据与算式见 appendix-charts-data.json 的 notes）。
+     ⚠️ 近段不能用「出生队列 × 冻结转化率」：2026–2030 的毕业生由**已在校、
+     已招生**的管道决定，队列效应要到 2030 年前后才压过扩招——旧模型让队列
+     提前 5 年发力，画出 2026 年就掉头的假下降（2026-10-19 用户抓到）。
+     2026 年及以后的招生按 2025 年水平持平；扩招方向（广东 2030 倍增等）计入上界。 */
+  const HOLD_EU = EUm(2025), HOLD_EP = EPm(2025);
+  const RATIO_UG = (G.undergrad[24] / EUm(2020) + G.undergrad[25] / EUm(2021)) / 2;
+  const RATIO_PG = [2022, 2023, 2024, 2025]
+    .reduce((s, y) => s + G.postgrad[y - Y0] / EPm(y - 3), 0) / 4;
+  const pipeUG = (y) => (EUm(y - 4) ?? HOLD_EU) * RATIO_UG;
+  const pipePG = (y) => (EPm(y - 3) ?? HOLD_EP) * RATIO_PG;
+
+  /* —— 远段（2031–2050）：出生队列 × 转化率 ——
+     转化率不用 2025 年的兑现值（32.71% / 6.59% 是扩招中途的读数，拿到远段会
+     立刻低估），取 2030 年管道隐含的稳态值，两段在 2030/2031 衔接处连续。 */
+  const R_UG = pipeUG(2030) / BIRTH[2030 - LAG_UG];
+  const R_PG = pipePG(2030) / BIRTH[2030 - LAG_PG];
+  const HOLD = BIRTH[2025];   // 792 万：远段用到的出生队列超出底稿年份时按此持平
+
+  // 上界：转化率 2031→2050 线性升到 1.35 倍（适龄人口塌下来时高校不会等比缩招）
+  const upFactor = (y) => 1 + 0.35 * Math.min(1, Math.max(0, (y - 2026) / (2050 - 2026)));
+
+  const proj = (arr, lag, pipe, R) =>
     YRS.map((y) => {
       if (y <= 2025) return { y, v: arr[y - Y0], up: null, real: true };
-      const base = cohort(y - lag) * R;
-      return { y, v: base, up: base * upFactor(y), real: false };
+      const v = y <= 2030 ? pipe(y) : (BIRTH[y - lag] ?? HOLD) * R;
+      return { y, v, up: v * upFactor(y), real: false };
     });
 
-  return { YRS, ug: proj(G.undergrad, 0, LAG_UG, R_UG), pg: proj(G.postgrad, 0, LAG_PG, R_PG), R_UG, R_PG, n };
+  return { YRS, ug: proj(G.undergrad, LAG_UG, pipeUG, R_UG), pg: proj(G.postgrad, LAG_PG, pipePG, R_PG), R_UG, R_PG, n };
 }
 
 function fig3() {
@@ -541,6 +560,12 @@ function fig5() {
 /* ══════════════════════════════════════════════════════
    区块拼装
    ══════════════════════════════════════════════════════ */
+
+/* 图 3 图注里的峰值年份/人数、稳态转化率必须与模型同步 —— 从同一份计算里取，别手写 */
+const G3_NOTE = deriveGrad();
+const pkOf = (s) => s.reduce((b, d) => (d.v > b.v ? d : b));
+const UG_PK = pkOf(G3_NOTE.ug), PG_PK = pkOf(G3_NOTE.pg);
+
 const SEC_BEGIN = '<!-- ===== 附录数据图 开始（生成器 tools/gen_appendix_charts.mjs）===== -->';
 const SEC_END = '<!-- ===== 附录数据图 结束 ===== -->';
 const CSS_BEGIN = '/* ===== appendix-charts 开始（生成器 tools/gen_appendix_charts.mjs）===== */';
@@ -632,11 +657,12 @@ ${SEC_BEGIN}
   <h3 id="d3">图 3 · 大学毕业生：实测到 2025，推算到 2050</h3>
   <div class="ap-fig">${fig3()}</div>
   <p class="ap-note">
-    <b>本科毕业生 2038 年见顶（约 584 万），研究生 2041 年见顶（约 118 万）——比出生人口的 2016 年峰值晚了 22 年与 25 年。</b>实线是实测（教育部），虚线是推算，阴影是只往上不往下的推演区间。
-    <br><b>算法</b>：毕业年份 − 学制那一年的出生人口 × 现行转化率。本科 = 22 年前出生 × 32.71%（523.06 ÷ 1599），研究生 = 25 年前出生 × 6.59%（116.65 ÷ 1771）。
-    <br><b>为什么阴影只在上方</b>：分母塌了以后高校不会等比缩招，录取率会被动抬升。阴影上界按 2050 年转化率比现在高 35% 计（本科 44.2%、研究生 8.9%），是方向性推演，<b>不是预测</b>。真实数据只有现在这条实线。
-    <br><b>两个已知不确定</b>：2026 年及以后的出生人口按 2025 年 792 万持平假定（2026 年数据要到 2027 年 1 月才公布）；职业本科 2023 年起从普通本科中单列，已按公报值取普通本科，未并入。
-    <span class="ap-src">数据：教育部《全国教育事业发展统计公报》历年、《中国统计年鉴 2025》表 21-8。单位：万人。</span>
+    <b>本科毕业生 ${UG_PK.y} 年见顶（约 ${Math.round(UG_PK.v)} 万），研究生 ${PG_PK.y} 年见顶（约 ${Math.round(PG_PK.v)} 万）——比出生人口的 2016 年峰值晚了 22 年与 25 年。</b>实线是实测（教育部），虚线是推算，阴影是只往上不往下的推演区间。
+    <br><b>算法分两段</b>：2026–2030 由招生管道推——毕业生 ≈ 学制前的招生 × 转化比（本科滞后 4 年、比值 1.166；研究生滞后 3 年、比值 0.929；均取近四年实测毕业生与对应年份招生之比的均值，算式见仓库底稿 notes）。2026 年及以后的招生按 2025 年水平持平假定。2031 年起改由出生队列驱动——毕业生 = 学制前出生人口 × 转化率，转化率取 2030 年管道隐含的稳态值（本科 36.5%、研究生 8.3%），两段在衔接处连续。
+    <br><b>为什么 2030 年前还在涨</b>：这几年的毕业生由已在校、已招生的管道决定，不由出生人口决定；队列效应要等招生增速耗尽后才重新主导。广东等地把 2030 年研究生培养规模倍增写进了省级方案，扩招的毕业生效应要到 2029 年前后才显现，这里把它计入上界阴影、不进基准线。
+    <br><b>为什么阴影只在上方</b>：适龄人口塌下去之后高校不会等比缩招，录取率会被动抬升。阴影上界按 2050 年转化率比稳态值再高 35% 计（本科约 ${Math.round(G3_NOTE.R_UG * 135) / 100}%、研究生约 ${Math.round(G3_NOTE.R_PG * 135) / 100}%），是方向性推演，<b>不是预测</b>。真实数据只有现在这条实线。
+    <br><b>两个已知不确定</b>：2031 年及以后用到的出生队列，超出已公布年份（2025 年）的部分按 792 万持平外推；职业本科 2023 年起从普通本科中单列，已按公报值取普通本科，未并入。
+    <span class="ap-src">数据：教育部《全国教育事业发展统计公报》历年（含招生数）、《中国统计年鉴 2025》表 21-8。单位：万人。</span>
   </p>
 
   <h3 id="d4">图 4 · 国有单位 vs 城镇私营企业</h3>
