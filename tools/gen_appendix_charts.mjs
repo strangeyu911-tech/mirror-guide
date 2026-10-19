@@ -344,7 +344,10 @@ function fig3() {
       bandPoly(upProj, botProj, C.teal, 0.15) +
       areaPoly(botReal, C.teal, 0.08) +
       poly(botReal, C.teal, { w: 2.6 }) +
-      poly(botProj, C.teal, { w: 2.4, dash: '5 3' }) +
+      /* ⚠️ 虚线图案别小于 8 5：non-scaling-stroke 下 dasharray 按**屏幕像素**解释，
+         5 3 骑在细线上 100% 缩放时被抗锯齿糊成「看着像实线」（2026-10-19 用户反馈，
+         150% 才看得出来）。加大图案 + 加粗到 2.8 才撑得开。 */
+      poly(botProj, C.teal, { w: 2.8, dash: '8 5' }) +
       poly(upProj, C.teal, { w: 1.4, dash: '2 3', op: 0.75 }) +
       `</svg>` +
       (showSplit ? vline(splitX, '推算 →') : '') +
@@ -490,7 +493,8 @@ function fig5() {
      读者会去找一条根本不存在的线。 */
   const inner2 =
     `<svg class="ap-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">` +
-    poly(eP, C.taupe, { w: 2, dash: '5 4', op: 0.9 }) + poly(hP, C.sand, { w: 2, dash: '5 4', op: 0.9 }) +
+    /* 虚线图案 8 6 / 加粗到 2.3：同图 3 的坑，5 4 在 100% 缩放下糊成实线 */
+    poly(eP, C.taupe, { w: 2.3, dash: '8 6', op: 0.9 }) + poly(hP, C.sand, { w: 2.3, dash: '8 6', op: 0.9 }) +
     poly(iP, C.green, { w: 2.6 }) + `</svg>` +
     iP.map((q) => dot(q.x, q.y, C.green, 5)).join('') +
     vline(bx, '2019 口径') +
