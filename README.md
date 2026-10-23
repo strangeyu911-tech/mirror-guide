@@ -17,6 +17,7 @@ Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 
 [![置信度](https://img.shields.io/badge/%E7%BD%AE%E4%BF%A1%E5%BA%A6-%E4%B8%89%E7%BA%A7%E6%A0%87%E6%B3%A8-915930?style=flat-square)](#判断是怎么做出来的)
 [![参考资料](https://img.shields.io/badge/%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99-85%20%E6%9D%A1-565a5f?style=flat-square)](https://mirror.strangeyu.xyz/#s99)
 [![补丁包](https://img.shields.io/badge/%E8%A1%A5%E4%B8%81%E5%8C%85-41%20%E6%9D%A1-565a5f?style=flat-square)](https://mirror.strangeyu.xyz/patch.html)
+[![电子书](https://img.shields.io/badge/%E7%94%B5%E5%AD%90%E4%B9%A6-PDF%20%2F%20EPUB-3451b2?style=flat-square)](https://github.com/strangeyu911-tech/mirror-guide/releases/tag/ebook-2026-10)
 [![许可](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF-CC%20BY--NC--SA%204.0-565a5f?style=flat-square)](#许可)
 
 ### [打开在线阅读](https://mirror.strangeyu.xyz/) · [衰退时代补丁包 41 条](https://mirror.strangeyu.xyz/patch.html)
@@ -30,6 +31,11 @@ Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 
 <tr><td align="right" nowrap><b>补丁包</b></td><td align="left">
 
 [衰退时代补丁包](https://mirror.strangeyu.xyz/patch.html)：正常时代的高性价比动作，进下行周期后哪 41 条要升级、反转、新增、降级
+
+</td></tr>
+<tr><td align="right" nowrap><b>离线</b></td><td align="left">
+
+[电子书 PDF / EPUB](https://github.com/strangeyu911-tech/mirror-guide/releases/tag/ebook-2026-10)：A4 PDF（120 页，带页码、目录与书签，图表仍是矢量）+ EPUB3（22 章，可重排，适配阅读器与电子墨水屏）。封面与扉页印有作者和完整网址
 
 </td></tr>
 <tr><td align="right" nowrap><b>对照</b></td><td align="left">
