@@ -18,7 +18,7 @@ Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 
 [![参考资料](https://img.shields.io/badge/%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99-85%20%E6%9D%A1-565a5f?style=flat-square)](https://mirror.strangeyu.xyz/#s99)
 [![补丁包](https://img.shields.io/badge/%E8%A1%A5%E4%B8%81%E5%8C%85-41%20%E6%9D%A1-565a5f?style=flat-square)](https://mirror.strangeyu.xyz/patch.html)
 [![电子书](https://img.shields.io/badge/%E7%94%B5%E5%AD%90%E4%B9%A6-PDF%20%2F%20EPUB-3451b2?style=flat-square)](https://github.com/strangeyu911-tech/mirror-guide/releases/tag/ebook-2026-10)
-[![许可](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF-CC%20BY--NC--SA%204.0-565a5f?style=flat-square)](#许可)
+[![许可](https://img.shields.io/badge/%E8%AE%B8%E5%8F%AF-CC%20BY--NC--SA%204.0-565a5f?style=flat-square)](LICENSE)
 
 ### [打开在线阅读](https://mirror.strangeyu.xyz/) · [衰退时代补丁包 41 条](https://mirror.strangeyu.xyz/patch.html)
 
@@ -51,6 +51,11 @@ Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 
 <tr><td align="right" nowrap><b>交流</b></td><td align="left">
 
 QQ 群 **1130141971**（去 QQ 里搜群号）· 作者微信在页面顶栏「分享」旁
+
+</td></tr>
+<tr><td align="right" nowrap><b>其他站</b></td><td align="left">
+
+同一位作者的另一处，体裁与口径完全不同：[孙割这十年](https://strangeyu911-tech.github.io/justin-sun-corpus/)——孙宇晨 2016–17 年那 156 集音频课，与 2026 年那次 4 小时 22 分长谈并排看 · [《高性价比人生指南》衍生站索引](https://htlb.strangeyu.xyz/)
 
 </td></tr>
 <tr><td align="right" nowrap><b>许可</b></td><td align="left">
