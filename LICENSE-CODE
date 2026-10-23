@@ -1,0 +1,41 @@
+MIT License
+
+Copyright (c) 2026 Strange (https://github.com/strangeyu911-tech)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+范围说明
+
+本许可覆盖本仓库中的可执行脚本：
+
+  annotate.js          读者批注前端
+  qqgroup.js           顶栏 QQ 群／微信下拉入口
+  worker/              Cloudflare Worker 后端（含其 README）
+  tools/               构建、生成与验证脚本
+
+index.html 与 patch.html 是单文件网页。其中的正文字句、目录、数据图、样式，
+以及它们内联的交互脚本，都属于内容作品的一部分，按根目录 LICENSE
+（CC BY-NC-SA 4.0）授权，不在本许可范围内。这样处理是因为这两个文件是作为
+一篇文章交付的，拆开授权对读者没有好处。
+
+README.md、docs/ 与本仓库其余文字同属内容作品，见 LICENSE。
+
+两个许可各管一块，互不覆盖。要复用脚本，看本文件；要转载或改编正文，看 LICENSE。
