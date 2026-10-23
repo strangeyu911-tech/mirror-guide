@@ -22,32 +22,32 @@ Boden 的《以日为鉴：衰退时代生存指南》（开明出版社，2025 
 ### [打开在线阅读](https://mirror.strangeyu.xyz/) · [衰退时代补丁包 41 条](https://mirror.strangeyu.xyz/patch.html)
 
 <table>
-<tr><td align="right"><b>正篇</b></td><td align="left">
+<tr><td align="right" nowrap><b>正篇</b></td><td align="left">
 
 引子 + 七篇 + 结语：中日像不像 · 守住底线（现金、负债、资产）· 工作与职业 · 资产与房子 · 医疗与养老 · 机会在哪（出海与新产业）· 分人群行动总表
 
 </td></tr>
-<tr><td align="right"><b>补丁包</b></td><td align="left">
+<tr><td align="right" nowrap><b>补丁包</b></td><td align="left">
 
 [衰退时代补丁包](https://mirror.strangeyu.xyz/patch.html)：正常时代的高性价比动作，进下行周期后哪 41 条要升级、反转、新增、降级
 
 </td></tr>
-<tr><td align="right"><b>对照</b></td><td align="left">
+<tr><td align="right" nowrap><b>对照</b></td><td align="left">
 
 20 余位中日及国际学者，逐条并排对冲：辜朝明、野口悠纪雄、吉川洋、大前研一、克鲁格曼、达利欧、珀森、林毅夫、余永定、姚洋、周其仁、陆铭、高善文、佩蒂斯、罗奇……
 
 </td></tr>
-<tr><td align="right"><b>批注</b></td><td align="left">
+<tr><td align="right" nowrap><b>批注</b></td><td align="left">
 
 选中正文任意一句就能划线写批注。不用登录、不收账号，批注只有作者看得到
 
 </td></tr>
-<tr><td align="right"><b>交流</b></td><td align="left">
+<tr><td align="right" nowrap><b>交流</b></td><td align="left">
 
 QQ 群 **1130141971**（去 QQ 里搜群号）· 作者微信在页面顶栏「分享」旁
 
 </td></tr>
-<tr><td align="right"><b>许可</b></td><td align="left">
+<tr><td align="right" nowrap><b>许可</b></td><td align="left">
 
 [CC BY-NC-SA 4.0](LICENSE)：可转载改编，须署名、非商用、衍生同协议开源
 
