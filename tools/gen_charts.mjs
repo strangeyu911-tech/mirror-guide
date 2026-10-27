@@ -219,6 +219,11 @@ const CHARTS = {
       const vals = [3548, 5417, 8778, 13849];
       const rate = [6.1, 7.8, 7.0, 9.0];
       const rlab = ['6.1%', '7.8%', '7.0%', '>9%'];
+      /* 增速标签默认压在圆点**上方**。硕士那枚例外：它的点就在柱身里、离柱顶只有
+         18px，标签放上方会压住柱顶的 8778（实测量到 2px 重叠），所以改放圆点下方 ——
+         本科→硕士是下坡、硕士→博士是上坡，下方这一段是空的，不盖折线。 */
+      const rBelow = [false, false, true, false];
+      const LAB_DY = 11;
       const min = 0, max = 15000, ticks = [0, 3000, 6000, 9000, 12000, 15000];
       const rmax = 14, rticks = [0, 3.5, 7, 10.5, 14];
       const n = 4, ph = 215;
@@ -229,8 +234,13 @@ const CHARTS = {
           `<span class="fw-bar" style="left:${c};width:34px;height:${pct(h(vals[i], min, max))};background:${S.teal}"></span>` +
           `<span class="fw-val" style="left:${c};bottom:calc(${pct(h(vals[i], min, max))} + 3px)">${vals[i]}</span>`;
       }
+      /* 增速的纵向位置一律用 h() 换算（= 距底百分比，和右轴刻度同一套），
+         再取 100− 给 SVG 用（SVG 的 y 从顶往下长）。
+         ⚠️ 别在下面再拼一个 % —— pct() 已经带了；拼成 %% 是无效值，
+            CSS 会把 bottom 整条丢掉，标签和圆点全部掉到绘图区顶部。 */
+      const lineB = (v) => h(v, min, rmax);
       const linePts = rate
-        .map((v, i) => `${pos(i, n).toFixed(3)},${(100 - h(v, min, rmax)).toFixed(3)}`)
+        .map((v, i) => `${pos(i, n).toFixed(3)},${(100 - lineB(v)).toFixed(3)}`)
         .join(' ');
       return (
         `<div class="fw-split">` +
@@ -238,14 +248,25 @@ const CHARTS = {
         yAxis(ticks, min, max) +
         `<div class="fw-plot">${grid(ticks, min, max)}${bars}` +
         `<svg class="fw-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">` +
+        /* 两遍画同一条折线：先一条卡片底色的粗线当"描边"，再盖金色细线。
+           这条线要横穿硕士/博士两根实心柱，单靠 2.5px 金线压在深青上不够跳。
+           ⚠️ 块注释放在两个加号中间会被解析成「A + (+"字符串")」，
+           拼进 HTML 的字面量就是 NaN —— 注释要么贴在上一个操作数后面，要么别加号。 */
+        `<polyline points="${linePts}" fill="none" stroke="var(--card)" stroke-width="5" ` +
+        `vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>` +
         `<polyline points="${linePts}" fill="none" stroke="${S.gold}" stroke-width="2.5" ` +
         `vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>` +
         rate
-          .map(
-            (v, i) =>
-              `<span class="fw-dot" style="left:${pct(pos(i, n))};bottom:${pct(100 - h(v, min, rmax))}%;width:8px;height:8px;background:${S.gold}"></span>` +
-              `<span class="fw-val" style="left:${pct(pos(i, n))};bottom:calc(${pct(100 - h(v, min, rmax))}% + 7px);color:${S.gold}">${rlab[i]}</span>`
-          )
+          .map((v, i) => {
+            const b = pct(lineB(v));
+            /* 标签用 bottom 定位（锚的是下边缘），所以"放圆点下方"要减掉整个标签高度：
+               标签约 12.5px 高 + 圆点半径 4px + 留白 6px ≈ 23px，少减一点就会盖住圆点 */
+            const dy = rBelow[i] ? `- ${LAB_DY + 12}px` : `+ ${LAB_DY}px`;
+            return (
+              `<span class="fw-dot" style="left:${pct(pos(i, n))};bottom:${b};width:8px;height:8px;background:${S.gold}"></span>` +
+              `<span class="fw-val fw-chip" style="left:${pct(pos(i, n))};bottom:calc(${b} ${dy});color:var(--ch-gold-ink)">${rlab[i]}</span>`
+            );
+          })
           .join('') +
         `</div>` +
         `</div>` +
@@ -332,10 +353,13 @@ ${CSS_MARK_BEGIN}
 :root{
   --ch-taupe:#7a6f60; --ch-teal:#24565a; --ch-gold:#b07a3d;
   --ch-sand:#b08d57; --ch-clay:#9c5a4a; --ch-green:#6f8a6a;
+  /* 折线数值专用字色：gold 本体压在白卡片上只有 3.3:1，10px 的小字要更深一档 */
+  --ch-gold-ink:#8a5520;
 }
 html[data-theme="dark"]{
   --ch-taupe:#a89a85; --ch-teal:#57a09c; --ch-gold:#d2a463;
   --ch-sand:#c8a877; --ch-clay:#c47d68; --ch-green:#8fa98a;
+  --ch-gold-ink:#e6bd85;
 }
 /* 几何一律用百分比/CSS 排布、文字一律是 HTML —— 这样 350px 手机和 980px 桌面上
    字号都不变。别退回"固定尺寸 SVG 缩放"那套，手机上字会小到看不清。 */
@@ -365,6 +389,11 @@ html[data-theme="dark"]{
 /* text-shadow 在这里当描边用：彩色标签常压在实心柱子上（起薪那张的金色折线标签
    就落在深青柱顶），描一圈卡片底色才能把字从柱子里托出来 */
 .fw-val{position:absolute;transform:translateX(-50%);font-size:10.5px;color:var(--muted);white-space:nowrap;line-height:1;text-shadow:0 0 3px var(--card),0 0 3px var(--card)}
+/* 折线数值的底片。同一条折线上的标签会分别落在纸色空地和实心柱身上（起薪那张的
+   硕士、博士两枚就压在深青柱里），换字色治不了本 —— 金色 #b07a3d 压在 #24565a 上
+   只有约 2.3:1，任何单一字色都只能讨好其中一半背景。给标签自己一块卡片底色，
+   身后是纸是柱都读得清，深浅两个主题也不用各调一套。 */
+.fw-chip{background:var(--card);border-radius:4px;padding:1px 4px;text-shadow:none}
 .fw-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .fw-dot{position:absolute;transform:translate(-50%,50%);border-radius:50%}
 .fw-mark{position:absolute;transform:translate(-50%,50%);background:${BADGE_BG};color:#fff;font-size:10px;padding:2px 7px;border-radius:999px;white-space:nowrap;line-height:1.3}
@@ -444,9 +473,12 @@ for (const [id, gen] of Object.entries(CHARTS)) {
   const re = new RegExp(`<div id="${id}"[^>]*></div>`);
   const m = html.match(re);
   if (!m) { console.error(`❌ 找不到占位符 ${id}`); process.exit(1); }
-  const out = `\n<div id="${id}" class="chart chart-static">${gen()}\n</div><!--/${id}-->\n`;
+  /* ⚠️ 首尾都不带换行：占位符那一行的换行由文件自己提供。带上末尾 '\n' 就等于
+     每重跑一次往图后多插一个空行 —— 8 张图重跑两遍，diff 里会多出 8 个空白行，
+     看着像改了内容。 */
+  const out = `<div id="${id}" class="chart chart-static">${gen()}\n</div><!--/${id}-->`;
   const before = m[0].length;
-  html = html.replace(re, out.trimStart());
+  html = html.replace(re, out);
   report.push(`${id}  ${before}B → ${out.length}B`);
 }
 
@@ -482,10 +514,24 @@ if (/syncSwitch\(\);renderCharts\(\);/.test(html)) {
   report.push('主题切换去掉 renderCharts() 调用（改由 CSS 变量自动生效）');
 } else if (!RERUN) { console.error('❌ 没找到主题切换里的 renderCharts()'); process.exit(1); }
 
-// 5) 注入 CSS
+/* 5) 注入 CSS。
+   ⚠️ 插在「附录 · 数据图」那段 CSS **前面**（存在的话），别直接怼到 </style> 前：
+   两个生成器都往 </style> 前塞整块 CSS，谁最后跑谁的块在后 —— 只跑一次 gen_charts
+   index.html 就会多出 5000 多字符的「整块搬家」假 diff。插到附录块之前相当于插在
+   原地，重跑不再搬动。前面那些空行也一并归一到 4 个换行（= 原来的 3 个空行），
+   否则每重跑一次就多攒一个空行。 */
 const cssAnchor = '\n</style>';
 if (!html.includes(cssAnchor)) { console.error('❌ 找不到 </style>'); process.exit(1); }
-html = html.replace(cssAnchor, CSS + '</style>');
+const EOL = html.includes('\r\n') ? '\r\n' : '\n';
+const crlf = (s) => (EOL === '\r\n' ? s.replace(/\r?\n/g, '\r\n') : s);
+const AP_BEG = '/* ===== appendix-charts 开始';
+const apAt = html.indexOf(AP_BEG);
+if (apAt > 0) {
+  html = html.slice(0, apAt).replace(/\n+$/, '\n\n\n\n') +
+    crlf(CSS).replace(/^\r?\n/, '') + html.slice(apAt);
+} else {
+  html = html.replace(cssAnchor, crlf(CSS) + '</style>');
+}
 report.push('注入静态图表 CSS');
 
 // 图表网格线配色变量（跟随主题）
