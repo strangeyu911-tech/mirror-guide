@@ -274,13 +274,14 @@ function deriveGrad() {
   const Y0 = 2000, END = 2050;
   const n = END - Y0 + 1;
   const YRS = Array.from({ length: n }, (_, i) => Y0 + i);
-  const LAG_UG = 22, LAG_PG = 25;
+  const LAG_UG = 22, LAG_PG = 25, LAG_V = 21;
 
   /* 招生序列（万），与 graduates.years 同年架（2000 起）。 */
-  const EU = G.enrol_undergrad, EP = G.enrol_postgrad;
+  const EU = G.enrol_undergrad, EP = G.enrol_postgrad, EV = G.enrol_vocational;
   const E0 = G.years[0];
   const EUm = (y) => EU[y - E0];
   const EPm = (y) => EP[y - E0];
+  const EVm = (y) => EV[y - E0];
 
   /* —— 近段（2026–2030）：招生管道模型 ——
      毕业生(y) ≈ 招生(y − 学制) × 转化比，转化比取近四年实测毕业生与
@@ -289,18 +290,25 @@ function deriveGrad() {
      已招生**的管道决定，队列效应要到 2030 年前后才压过扩招——旧模型让队列
      提前 5 年发力，画出 2026 年就掉头的假下降（2026-10-19 用户抓到）。
      2026 年及以后的招生按 2025 年水平持平；扩招方向（广东 2030 倍增等）计入上界。 */
-  const HOLD_EU = EUm(2025), HOLD_EP = EPm(2025);
+  const HOLD_EU = EUm(2025), HOLD_EP = EPm(2025), HOLD_EV = EVm(2025);
   const RATIO_UG = (G.undergrad[24] / EUm(2020) + G.undergrad[25] / EUm(2021)) / 2;
   const RATIO_PG = [2022, 2023, 2024, 2025]
     .reduce((s, y) => s + G.postgrad[y - Y0] / EPm(y - 3), 0) / 4;
+  /* 专科：近三年「毕业生/三年前招生」均值。分母是公报主口径（不含五年制转入），
+     口径差由比值本身吸收 —— 见 data JSON notes。
+     ⚠️ 裸索引（[23] = 2023 年），与上面 RATIO_UG 的 undergrad[24]/[25] 同一风格；
+     写成 [23 - Y0] 会取到负下标 undefined，比值全 NaN（2026-10-29 踩过）。 */
+  const RATIO_V = (G.vocational[23] / EVm(2020) + G.vocational[24] / EVm(2021) + G.vocational[25] / EVm(2022)) / 3;
   const pipeUG = (y) => (EUm(y - 4) ?? HOLD_EU) * RATIO_UG;
   const pipePG = (y) => (EPm(y - 3) ?? HOLD_EP) * RATIO_PG;
+  const pipeV = (y) => (EVm(y - 3) ?? HOLD_EV) * RATIO_V;
 
   /* —— 远段（2031–2050）：出生队列 × 转化率 ——
      转化率不用 2025 年的兑现值（32.71% / 6.59% 是扩招中途的读数，拿到远段会
      立刻低估），取 2030 年管道隐含的稳态值，两段在 2030/2031 衔接处连续。 */
   const R_UG = pipeUG(2030) / BIRTH[2030 - LAG_UG];
   const R_PG = pipePG(2030) / BIRTH[2030 - LAG_PG];
+  const R_V = pipeV(2030) / BIRTH[2030 - LAG_V];
   const HOLD = BIRTH[2025];   // 792 万：远段用到的出生队列超出底稿年份时按此持平
 
   // 上界：转化率 2031→2050 线性升到 1.35 倍（适龄人口塌下来时高校不会等比缩招）
@@ -313,16 +321,16 @@ function deriveGrad() {
       return { y, v, up: v * upFactor(y), real: false };
     });
 
-  return { YRS, ug: proj(G.undergrad, LAG_UG, pipeUG, R_UG), pg: proj(G.postgrad, LAG_PG, pipePG, R_PG), R_UG, R_PG, n };
+  return { YRS, ug: proj(G.undergrad, LAG_UG, pipeUG, R_UG), pg: proj(G.postgrad, LAG_PG, pipePG, R_PG), voc: proj(G.vocational, LAG_V, pipeV, R_V), R_UG, R_PG, R_V, n };
 }
 
 function fig3() {
-  const { YRS, ug, pg, R_UG, R_PG, n } = deriveGrad();
+  const { YRS, ug, pg, voc, R_UG, R_PG, R_V, n } = deriveGrad();
   // ⚠️ 实测段的 up 必须是 null，不能是 0 —— 下面用 `up ?? v` 取上界，
   //    写成 0 的话 `0 ?? v` 得到 0（0 不是空值），阴影带左端会掉到图底。
   const sum = YRS.map((y, i) => ({
-    y, v: ug[i].v + pg[i].v,
-    up: ug[i].real ? null : ug[i].up + pg[i].up,
+    y, v: ug[i].v + pg[i].v + voc[i].v,
+    up: ug[i].real ? null : ug[i].up + pg[i].up + voc[i].up,
     real: ug[i].real,
   }));
   const splitX = xL(2026 - YRS[0], n);            // 实测/推算分界
@@ -376,22 +384,24 @@ function fig3() {
       frame({ ph: 250, ybw: 44, min: 0, max, ticks, fmt: (v) => Math.round(v), inner, xlabels, hover });
   }
 
+  const paneV = pane(voc, { unitLabel: '万人 · 专科（高职）毕业生' });
   const paneUG = pane(ug, { unitLabel: '万人 · 本科毕业生' });
   const panePG = pane(pg, { unitLabel: '万人 · 研究生（硕 + 博）毕业生' });
-  const paneSum = pane(sum, { unitLabel: '万人 · 本科 + 研究生', div: 5 });
+  const paneSum = pane(sum, { unitLabel: '万人 · 专科（高职）+ 本科 + 研究生', div: 5 });
 
-  // 图例只放一份、放在切换条上方：三个面板的图例完全一样，每面板印一遍是噪音
+  // 图例只放一份、放在切换条上方：四个面板的图例完全一样，每面板印一遍是噪音
   return legend([
     { c: C.teal, t: '实测（2000–2025，教育部）' },
     { c: C.teal, dash: true, t: '推算（转化率持平）' },
     { c: C.teal, op: 0.22, t: '推演上界（阴影）' },
   ]) + switchUI({
     name: 'ap-g3',
-    checkedIdx: 0,
+    checkedIdx: 3,   // 默认「三者合计」：打开就能和「1222 万」对上
     panes: [
+      { label: '只看专科', html: paneV },
       { label: '只看本科', html: paneUG },
       { label: '只看研究生', html: panePG },
-      { label: '两者合计', html: paneSum },
+      { label: '三者合计', html: paneSum },
     ],
   });
 }
@@ -573,7 +583,7 @@ function fig5() {
 /* 图 3 图注里的峰值年份/人数、稳态转化率必须与模型同步 —— 从同一份计算里取，别手写 */
 const G3_NOTE = deriveGrad();
 const pkOf = (s) => s.reduce((b, d) => (d.v > b.v ? d : b));
-const UG_PK = pkOf(G3_NOTE.ug), PG_PK = pkOf(G3_NOTE.pg);
+const UG_PK = pkOf(G3_NOTE.ug), PG_PK = pkOf(G3_NOTE.pg), V_PK = pkOf(G3_NOTE.voc);
 
 const SEC_BEGIN = '<!-- ===== 附录数据图 开始（生成器 tools/gen_appendix_charts.mjs）===== -->';
 const SEC_END = '<!-- ===== 附录数据图 结束 ===== -->';
@@ -631,7 +641,7 @@ ${CSS_BEGIN}
 .ap-tip{position:absolute;top:6px;transform:translateX(-50%);background:var(--card);border:0.5px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11.5px;line-height:1.55;color:var(--ink);white-space:nowrap;pointer-events:none;opacity:0;z-index:6;transition:opacity .12s linear}
 .ap-tip.on{opacity:1}
 .ap-tip .sub{color:var(--ink2)}
-${switchCSS('ap-g3', 3)}
+${switchCSS('ap-g3', 4)}
 ${switchCSS('ap-g5', 3)}
 ${CSS_END}
 `;
@@ -667,12 +677,13 @@ ${SEC_BEGIN}
   <h3 id="d3">图 3 · 大学毕业生：实测到 2025，推算到 2050</h3>
   <div class="ap-fig">${fig3()}</div>
   <p class="ap-note">
-    <b>本科毕业生 ${UG_PK.y} 年见顶（约 ${Math.round(UG_PK.v)} 万），研究生 ${PG_PK.y} 年见顶（约 ${Math.round(PG_PK.v)} 万）——比出生人口的 2016 年峰值晚了 22 年与 25 年。</b>实线是实测（教育部），虚线是推算，阴影是只往上不往下的推演区间。
-    <br><b>算法分两段</b>：2026–2030 由招生管道推——毕业生 ≈ 学制前的招生 × 转化比（本科滞后 4 年、比值 1.166；研究生滞后 3 年、比值 0.929；均取近四年实测毕业生与对应年份招生之比的均值，算式见仓库底稿 notes）。2026 年及以后的招生按 2025 年水平持平假定。2031 年起改由出生队列驱动——毕业生 = 学制前出生人口 × 转化率，转化率取 2030 年管道隐含的稳态值（本科 36.5%、研究生 8.3%），两段在衔接处连续。
+    <b>专科（高职）毕业生 ${V_PK.y} 年见顶（约 ${Math.round(V_PK.v)} 万）、本科 ${UG_PK.y} 年见顶（约 ${Math.round(UG_PK.v)} 万）、研究生 ${PG_PK.y} 年见顶（约 ${Math.round(PG_PK.v)} 万）——比出生人口的 2016 年峰值分别晚 21、22、25 年。</b>实线是实测（教育部），虚线是推算，阴影是只往上不往下的推演区间。
+    <br><b>先对口径</b>：就业工作常说的「2025 届高校毕业生预计 1222 万」，是专科、本科、研究生三层合起来算的预计规模。本图「三者合计」面板 2025 年实测 1213 万（专科 573 + 本科 523 + 研究生 117），与它对得上，差的约 9 万是「预计规模」与「实际毕业」的口径差。
+    <br><b>算法分两段</b>：2026–2030 由招生管道推——毕业生 ≈ 学制前的招生 × 转化比（本科滞后 4 年、比值 1.166；研究生滞后 3 年、比值 0.929；专科滞后 3 年、比值 1.004；取近年实测毕业生与对应年份招生之比的均值，算式见仓库底稿 notes）。2026 年及以后的招生按 2025 年水平持平假定。2031 年起改由出生队列驱动——毕业生 = 学制前出生人口 × 转化率，转化率取 2030 年管道隐含的稳态值（专科 ${Math.round(G3_NOTE.R_V * 1000) / 10}%、本科 ${Math.round(G3_NOTE.R_UG * 1000) / 10}%、研究生 ${Math.round(G3_NOTE.R_PG * 1000) / 10}%），两段在衔接处连续。专科转化率受中职升学、高职扩招这类政策影响更大，远段数值的不确定度比本科、研究生两条更宽。
     <br><b>为什么 2030 年前还在涨</b>：这几年的毕业生由已在校、已招生的管道决定，不由出生人口决定；队列效应要等招生增速耗尽后才重新主导。广东等地把 2030 年研究生培养规模倍增写进了省级方案，扩招的毕业生效应要到 2029 年前后才显现，这里把它计入上界阴影、不进基准线。
-    <br><b>为什么阴影只在上方</b>：适龄人口塌下去之后高校不会等比缩招，录取率会被动抬升。阴影上界按 2050 年转化率比稳态值再高 35% 计（本科约 ${Math.round(G3_NOTE.R_UG * 135) / 100}%、研究生约 ${Math.round(G3_NOTE.R_PG * 135) / 100}%），是方向性推演，<b>不是预测</b>。真实数据只有现在这条实线。
+    <br><b>为什么阴影只在上方</b>：适龄人口塌下去之后高校不会等比缩招，录取率会被动抬升。阴影上界按 2050 年转化率比稳态值再高 35% 计（届时专科约 ${Math.round(G3_NOTE.R_V * 135)}%、本科约 ${Math.round(G3_NOTE.R_UG * 135)}%、研究生约 ${Math.round(G3_NOTE.R_PG * 135)}%），是方向性推演，<b>不是预测</b>。真实数据只有现在这条实线。
     <br><b>两个已知不确定</b>：2031 年及以后用到的出生队列，超出已公布年份（2025 年）的部分按 792 万持平外推；职业本科 2023 年起从普通本科中单列，已按公报值取普通本科，未并入。
-    <span class="ap-src">数据：教育部《全国教育事业发展统计公报》历年（含招生数）、《中国统计年鉴 2025》表 21-8。单位：万人。</span>
+    <span class="ap-src">数据：教育部《全国教育事业发展统计公报》历年（含招生数）、《中国统计年鉴 2025》表 21-8、《中国统计年鉴 2014》表 21-9（2000–2002 年专科 = 普通本专科毕业生合计 − 本科）。单位：万人。</span>
   </p>
 
   <h3 id="d4">图 4 · 国有单位 vs 城镇私营企业</h3>
@@ -718,14 +729,21 @@ ${SEC_BEGIN}
       var lines = (hs[i].getAttribute('data-t') || '').split('|');
       if (!lines[0]) return;
       var p = parseFloat(hs[i].style.left) + parseFloat(hs[i].style.width) / 2;
-      p = Math.max(12, Math.min(88, p));   /* 贴边列的气泡往里收，别溢出卡片 */
+      /* 竖线永远落真实列中心。之前竖线和气泡共用一个 clamp 进 [12,88]：
+         两端年份竖线钉死不动、气泡里的读数却换成贴边年的 —— 读数和位置错位
+         （2026-10-29 用户反馈「虚线只在中间范围跟手」的真根源）。 */
       cross.style.left = p + '%';
       cross.style.opacity = '1';
       var html = '';
       for (var j = 0; j < lines.length; j++)
         html += '<div' + (j ? ' class="sub"' : '') + '>' + lines[j] + '</div>';
       tip.innerHTML = html;
+      /* 只有气泡需要防溢出：贴边改锚点（左端向右展开 / 右端向左展开），中间照旧居中。
+         阈值按气泡实际半宽算（桌面 ~6%、手机 ~22%），写死 12% 在手机上仍会溢出。 */
       tip.style.left = p + '%';
+      var halfW = (tip.offsetWidth + 10) / plot.clientWidth * 100;
+      tip.style.transform =
+        p <= halfW ? 'translateX(0)' : p >= 100 - halfW ? 'translateX(-100%)' : 'translateX(-50%)';
       tip.classList.add('on');
     }
     function hide(){ cur = -1; cross.style.opacity = '0'; tip.classList.remove('on'); }
